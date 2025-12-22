@@ -45,6 +45,7 @@ function ensureRoom(code) {
 function publicRoomState(room) {
   return {
     code: room.code,
+    hostSocketId: room.hostSocketId,
     status: room.status,
     round: room.round,
     letter: room.letter,
@@ -183,3 +184,4 @@ setInterval(() => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server listening on http://localhost:${PORT}`));
+
