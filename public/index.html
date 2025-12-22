@@ -3,162 +3,78 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>اسم فامیل پرو 🎮</title>
+    <title>اسم فامیل آنلاین</title>
     <style>
-        :root {
-            --primary: #4f46e5;
-            --secondary: #6366f1;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --danger: #ef4444;
-            --success: #22c55e;
-        }
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background: var(--bg);
-            margin: 0;
-            color: #1e293b;
-        }
-        .wrap { max-width: 800px; margin: 0 auto; padding: 20px; }
+        :root { --p: #4f46e5; --bg: #f8fafc; --danger: #ef4444; }
+        body { font-family: system-ui; background: var(--bg); margin: 0; padding: 15px; }
+        .wrap { max-width: 800px; margin: 0 auto; }
+        .card { background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h1 { font-size: 22px; text-align: center; color: var(--p); }
+        .input-group { display: grid; gap: 10px; margin-bottom: 15px; grid-template-columns: 1fr 1fr; }
+        input, select, button { padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; font-size: 14px; }
+        button { cursor: pointer; font-weight: bold; transition: 0.2s; border: none; }
+        .btn-p { background: var(--p); color: white; }
+        .timer-bar { height: 6px; background: #e2e8f0; border-radius: 10px; margin: 10px 0; overflow: hidden; }
+        .timer-progress { height: 100%; background: var(--p); width: 100%; transition: 1s linear; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+        .field-card { background: #f1f5f9; padding: 10px; border-radius: 12px; }
+        .field-card label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 5px; }
+        .score-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
         
-        /* Glassmorphism Cards */
-        .card {
-            background: var(--card-bg);
-            border-radius: 24px;
-            padding: 24px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.7);
-        }
-
-        .header { text-align: center; margin-bottom: 30px; }
-        h1 { font-size: 28px; margin: 0; background: linear-gradient(to right, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-        .input-group { display: grid; gap: 12px; margin-bottom: 20px; grid-template-columns: 1fr 1fr; }
-        @media (max-width: 500px) { .input-group { grid-template-columns: 1fr; } }
-
-        input, select {
-            padding: 14px;
-            border-radius: 14px;
-            border: 2px solid #e2e8f0;
-            font-size: 15px;
-            transition: 0.3s;
-            outline: none;
-        }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
-
-        button {
-            padding: 14px 24px;
-            border-radius: 14px;
-            border: none;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.3s;
-            font-size: 15px;
-        }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--secondary); transform: translateY(-2px); }
-        .btn-primary:disabled { background: #cbd5e1; cursor: not-allowed; }
-        .btn-danger { background: #fee2e2; color: var(--danger); }
-
-        /* Timer UI */
-        .timer-container {
-            width: 100%;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 10px;
-            margin: 15px 0;
-            overflow: hidden;
-        }
-        .timer-bar {
-            height: 100%;
-            width: 100%;
-            background: var(--primary);
-            transition: width 1s linear, background-color 0.3s;
-        }
-
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 99px;
-            font-size: 12px;
-            font-weight: 800;
-            text-transform: uppercase;
-        }
-        .status-lobby { background: #f1f5ff; color: var(--primary); }
-        .status-playing { background: #fef2f2; color: var(--danger); }
-
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
-        .field-card {
-            background: #f1f5f9;
-            padding: 12px;
-            border-radius: 16px;
-            border: 1px solid #e2e8f0;
-        }
-        .field-card label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 8px; color: #64748b; }
-        .field-card input { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; }
-
-        .score-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
-        .score-item:last-child { border-bottom: none; }
-        
-        .floating-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .pill { background: #fff; padding: 8px 16px; border-radius: 99px; font-size: 13px; font-weight: 700; border: 1px solid #e2e8f0; }
+        /* Review Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: center; }
+        th { background: #f8fafc; }
+        .points-btn { padding: 4px 8px; font-size: 10px; margin: 2px; border-radius: 6px; }
     </style>
 </head>
 <body>
 
 <div class="wrap">
-    <div class="header">
-        <h1 id="t-title">اسم و فامیل پرو</h1>
-        <p id="t-sub" style="color: #64748b;">تجربه بازی مدرن و سریع</p>
-    </div>
-
     <div class="card" id="authBox">
+        <h1>📝 اسم فامیل (نسخه داوری)</h1>
         <div class="input-group">
-            <input id="nameInput" placeholder="نام نمایشی" />
-            <select id="langSelect">
-                <option value="fa">فارسی</option>
-                <option value="en">English</option>
-            </select>
+            <input id="nameInput" placeholder="نام شما" />
+            <select id="langSelect"><option value="fa">فارسی</option><option value="en">English</option></select>
         </div>
         <div class="input-group">
-            <button class="btn-primary" id="createBtn">ساخت اتاق جدید</button>
-            <input id="codeInput" placeholder="کد اتاق ۵ رقمی" style="text-transform: uppercase;" />
+            <button class="btn-p" id="createBtn">ساخت اتاق</button>
+            <input id="codeInput" placeholder="کد اتاق" />
         </div>
-        <button class="btn-primary" id="joinBtn" style="width: 100%; margin-top: 10px;">ورود به اتاق</button>
+        <button class="btn-p" id="joinBtn" style="width:100%; margin-top:5px">ورود</button>
     </div>
 
-    <div class="card" id="gameInfo" style="display: none;">
-        <div class="floating-info">
-            <div id="roomPill" class="pill">اتاق: —</div>
-            <div id="statusBadge" class="status-badge status-lobby">Lobby</div>
+    <div class="card" id="gameInfo" style="display:none">
+        <div style="display:flex; justify-content:space-between; align-items:center">
+            <div id="roomPill" style="font-weight:bold">اتاق: —</div>
+            <div id="statusBadge" style="color:var(--p); font-size:12px">Lobby</div>
         </div>
-        
-        <div id="hostControls" style="display: none;">
-            <div class="input-group">
-                <input id="durationInput" type="number" value="120" placeholder="زمان" />
-                <button class="btn-primary" id="startBtn">شروع راند</button>
-            </div>
+        <div id="hostControls" style="display:none; margin-top:10px">
+            <input id="durationInput" type="number" value="120" style="width:70px" />
+            <button class="btn-p" id="startBtn">شروع راند</button>
         </div>
-
-        <div id="scoreboard">
-            <h3 id="t-scores" style="margin: 15px 0 10px;">امتیازات برتر</h3>
-            <div id="scoresList"></div>
-        </div>
+        <div id="scoresList" style="margin-top:15px"></div>
     </div>
 
-    <div class="card" id="playArea" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-size: 24px; font-weight: 900;">حرف: <span id="letterBox" style="color: var(--primary);">؟</span></div>
-            <div id="timerText" style="font-weight: 800; font-size: 20px;">120s</div>
+    <div class="card" id="playArea" style="display:none">
+        <div style="display:flex; justify-content:space-between">
+            <div style="font-weight:bold">حرف: <span id="letterBox" style="color:var(--p)">؟</span></div>
+            <div id="timerText">120s</div>
         </div>
-        
-        <div class="timer-container">
-            <div id="timerBar" class="timer-bar"></div>
-        </div>
+        <div class="timer-bar"><div id="timerProgress" class="timer-progress"></div></div>
+        <div id="inputsGrid" class="grid"></div>
+        <button class="btn-p" id="submitBtn" style="width:100%; margin-top:15px">ارسال کلمات</button>
+    </div>
 
-        <div id="inputsGrid" class="grid" style="margin-top: 20px;"></div>
-        
-        <button class="btn-primary" id="submitBtn" style="width: 100%; margin-top: 20px; padding: 18px;">ارسال نهایی پاسخ‌ها</button>
+    <div class="card" id="reviewArea" style="display:none">
+        <h2 style="font-size:16px">🔎 بررسی کلمات (مخصوص میزبان)</h2>
+        <div style="overflow-x:auto">
+            <table id="reviewTable">
+                <thead><tr id="tableHeader"></tr></thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+        <button id="finishReviewBtn" class="btn-p" style="width:100%; margin-top:15px; display:none">پایان داوری و بازگشت به لابی</button>
     </div>
 </div>
 
@@ -166,117 +82,96 @@
 <script>
     const socket = io();
     const CATEGORIES = ["name","family","city","country","animal","food","fruit","object","color","job"];
-    const i18n = {
-        fa: { name: "اسم", family: "فامیل", city: "شهر", country: "کشور", animal: "حیوان", food: "غذا", fruit: "میوه", object: "اشیاء", color: "رنگ", job: "شغل" },
-        en: { name: "Name", family: "Family", city: "City", country: "Country", animal: "Animal", food: "Food", fruit: "Fruit", object: "Object", color: "Color", job: "Job" }
-    };
+    const i18n = { fa: { name: "اسم", family: "فامیل", city: "شهر", country: "کشور", animal: "حیوان", food: "غذا", fruit: "میوه", object: "اشیاء", color: "رنگ", job: "شغل" }, en: { name: "Name", family: "Family", city: "City", country: "Country", animal: "Animal", food: "Food", fruit: "Fruit", object: "Object", color: "Color", job: "Job" } };
 
     let currentCode = null;
-    let roomState = null;
     let timerInterval = null;
 
     const $ = id => document.getElementById(id);
 
-    // Actions
-    $('createBtn').onclick = () => {
-        const name = $('nameInput').value || "Player";
-        socket.emit("room:create", { name }, res => { if(res.ok) currentCode = res.code; });
-    };
-
-    $('joinBtn').onclick = () => {
-        const name = $('nameInput').value || "Player";
-        const code = $('codeInput').value.toUpperCase();
-        socket.emit("room:join", { code, name }, res => { if(res.ok) currentCode = res.code; else alert("اتاق یافت نشد"); });
-    };
-
-    $('startBtn').onclick = () => {
-        socket.emit("round:start", { code: currentCode, durationSec: $('durationInput').value });
-    };
-
+    $('createBtn').onclick = () => socket.emit("room:create", { name: $('nameInput').value }, res => { if(res.ok) currentCode = res.code; });
+    $('joinBtn').onclick = () => socket.emit("room:join", { code: $('codeInput').value.toUpperCase(), name: $('nameInput').value }, res => { if(res.ok) currentCode = res.code; else alert("اتاق نیست"); });
+    $('startBtn').onclick = () => socket.emit("round:start", { code: currentCode, durationSec: $('durationInput').value });
     $('submitBtn').onclick = () => {
         const answers = {};
         document.querySelectorAll('.ans-inp').forEach(i => answers[i.dataset.cat] = i.value);
-        socket.emit("submit", { code: currentCode, answers }, () => {
-            $('submitBtn').disabled = true;
-            $('submitBtn').innerText = "ارسال شد، منتظر بقیه...";
-        });
+        socket.emit("submit", { code: currentCode, answers }, () => { $('submitBtn').disabled = true; $('submitBtn').innerText = "فرستاده شد"; });
     };
+    $('finishReviewBtn').onclick = () => socket.emit("round:finish_review", { code: currentCode });
 
     socket.on("room:state", state => {
-        roomState = state;
         currentCode = state.code;
-        
         $('authBox').style.display = 'none';
         $('gameInfo').style.display = 'block';
         $('roomPill').innerText = "اتاق: " + state.code;
         
-        // Host UI
         const isHost = state.hostSocketId === socket.id;
         $('hostControls').style.display = isHost ? 'block' : 'none';
+        $('finishReviewBtn').style.display = (isHost && state.status === 'review') ? 'block' : 'none';
 
-        // Play UI
-        const isPlaying = state.status === 'playing';
-        $('playArea').style.display = isPlaying ? 'block' : 'none';
-        $('statusBadge').innerText = isPlaying ? "در حال بازی" : "لابی";
-        $('statusBadge').className = `status-badge ${isPlaying ? 'status-playing' : 'status-lobby'}`;
+        // Visibility
+        $('playArea').style.display = state.status === 'playing' ? 'block' : 'none';
+        $('reviewArea').style.display = state.status === 'review' ? 'block' : 'none';
+        $('statusBadge').innerText = state.status.toUpperCase();
 
-        if(isPlaying) {
+        if(state.status === 'playing') {
             $('letterBox').innerText = state.letter;
-            renderInputs(state.categories);
-            handleTimer(state.endsAt, state.durationSec);
+            renderFields(state.categories);
+            startTimerUI(state.endsAt, state.durationSec);
             $('submitBtn').disabled = false;
-            $('submitBtn').innerText = "ارسال نهایی پاسخ‌ها";
-        } else {
-            clearInterval(timerInterval);
+            $('submitBtn').innerText = "ارسال کلمات";
         }
+
+        if(state.status === 'review') renderReviewTable(state, isHost);
 
         renderScores(state.totals, state.players);
     });
 
-    function renderInputs(cats) {
+    function renderFields(cats) {
         const grid = $('inputsGrid');
         if (grid.children.length > 0) return;
         const lang = $('langSelect').value;
-        grid.innerHTML = cats.map(cat => `
-            <div class="field-card">
-                <label>${i18n[lang][cat] || cat}</label>
-                <input class="ans-inp" data-cat="${cat}" placeholder="..." />
-            </div>
-        `).join('');
+        grid.innerHTML = cats.map(cat => `<div class="field-card"><label>${i18n[lang][cat] || cat}</label><input class="ans-inp" data-cat="${cat}" /></div>`).join('');
     }
 
-    function handleTimer(endsAt, totalSec) {
+    function startTimerUI(endsAt, total) {
         clearInterval(timerInterval);
-        const bar = $('timerBar');
-        const text = $('timerText');
-
         timerInterval = setInterval(() => {
-            const now = Date.now();
-            const left = Math.max(0, Math.floor((endsAt - now) / 1000));
-            const percent = (left / totalSec) * 100;
-            
-            bar.style.width = percent + "%";
-            text.innerText = left + "s";
-
-            if (percent < 20) bar.style.backgroundColor = 'var(--danger)';
-            else bar.style.backgroundColor = 'var(--primary)';
-
-            if (left <= 0) clearInterval(timerInterval);
+            const left = Math.max(0, Math.floor((endsAt - Date.now()) / 1000));
+            $('timerText').innerText = left + "s";
+            $('timerProgress').style.width = (left / total * 100) + "%";
+            if(left <= 0) clearInterval(timerInterval);
         }, 1000);
     }
 
     function renderScores(totals, players) {
         const names = new Map(players.map(p => [p.id, p.name]));
-        $('scoresList').innerHTML = totals
-            .sort((a,b) => b.score - a.score)
-            .map(t => `
-                <div class="score-item">
-                    <span>${names.get(t.id) || 'Player'}</span>
-                    <strong>${t.score} امتیاز</strong>
-                </div>
-            `).join('');
+        $('scoresList').innerHTML = '<b>امتیازات:</b>' + totals.sort((a,b)=>b.score-a.score).map(t => `<div class="score-row"><span>${names.get(t.id)}</span><b>${t.score}</b></div>`).join('');
     }
-</script>
 
+    function renderReviewTable(state, isHost) {
+        const lang = $('langSelect').value;
+        const header = $('tableHeader');
+        const body = $('tableBody');
+        
+        header.innerHTML = '<th>بازیکن</th>' + state.categories.map(c => `<th>${i18n[lang][c] || c}</th>`).join('') + (isHost ? '<th>عملیات</th>' : '');
+        
+        body.innerHTML = state.submissions.map(sub => `
+            <tr>
+                <td><b>${sub.name}</b></td>
+                ${state.categories.map(c => `<td>${sub.answers[c] || '-'}</td>`).join('')}
+                ${isHost ? `<td>
+                    <button class="points-btn" onclick="assign(${sub.id}, 5)">+5</button>
+                    <button class="points-btn" onclick="assign(${sub.id}, 10)">+10</button>
+                    <button class="points-btn" onclick="assign(${sub.id}, 20)">+20</button>
+                </td>` : ''}
+            </tr>
+        `).join('');
+    }
+
+    window.assign = (pid, pts) => {
+        socket.emit("host:assign_score", { code: currentCode, playerId: pid, points: pts });
+    };
+</script>
 </body>
 </html>
