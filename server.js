@@ -10,8 +10,6 @@ const io = new Server(server);
 app.use(express.static("public"));
 
 const DEFAULT_DURATION_SEC = 120;
-const DEFAULT_CATEGORIES = ["نام", "فامیل", "شهر", "کشور", "حیوان", "غذا", "میوه", "اشیاء", "رنگ", "شغل"];
-
 const rooms = new Map();
 
 function makeRoomCode() {
@@ -29,7 +27,8 @@ function ensureRoom(code) {
   if (!rooms.has(code)) {
     rooms.set(code, {
       code, hostSocketId: null, status: "lobby", round: 0, letter: "",
-      endsAt: null, durationSec: DEFAULT_DURATION_SEC, categories: DEFAULT_CATEGORIES.slice(),
+      endsAt: null, durationSec: DEFAULT_DURATION_SEC, 
+      categories: ["نام", "فامیل", "شهر", "کشور", "حیوان", "غذا", "میوه", "اشیاء", "رنگ", "شغل"],
       players: new Map(), submissions: new Map(), totalScores: new Map(), timer: null, lang: 'fa'
     });
   }
@@ -75,30 +74,16 @@ function computeRoundScores(submissions, categories, players) {
   return roundScores;
 }
 
-function startRound(room) {
-  room.submissions.clear();
-  room.status = "playing";
-  room.round += 1;
-  const alphabets = {
-    fa: "ابپتثجچحخدذرژسشصضطظعغفقکگلمنوهی".split(""),
-    en: "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
-    fr: "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
-  };
-  const list = alphabets[room.lang] || alphabets.fa;
-  room.letter = list[Math.floor(Math.random() * list.length)];
-  room.endsAt = Date.now() + room.durationSec * 1000;
-  if (room.timer) clearTimeout(room.timer);
-  room.timer = setTimeout(() => endRound(room), room.durationSec * 1000);
-  io.to(room.code).emit("room:state", publicRoomState(room));
-}
-
 function endRound(room) {
   if (room.status !== "playing") return;
+  if (room.timer) clearInterval(room.timer);
   room.status = "lobby";
+  
   const roundScores = computeRoundScores(room.submissions, room.categories, room.players);
   roundScores.forEach((pts, pid) => {
     room.totalScores.set(pid, (room.totalScores.get(pid) || 0) + pts);
   });
+
   io.to(room.code).emit("scores:update", {
     totals: Array.from(room.totalScores.entries()).map(([id, score]) => ({ id, score })),
     round: Array.from(roundScores.entries()).map(([id, score]) => ({ id, score }))
@@ -134,7 +119,30 @@ io.on("connection", (socket) => {
 
   socket.on("round:start", ({ code }) => {
     const room = rooms.get(code);
-    if (room && room.hostSocketId === socket.id) startRound(room);
+    if (room && room.hostSocketId === socket.id && room.status !== "playing") {
+      room.submissions.clear();
+      room.status = "playing";
+      room.round += 1;
+      const alphabets = {
+        fa: "ابپتثجچحخدذرژسشصضطظعغفقکگلمنوهی".split(""),
+        en: "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
+        fr: "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
+      };
+      room.letter = alphabets[room.lang][Math.floor(Math.random() * alphabets[room.lang].length)];
+      
+      let timeLeft = room.durationSec;
+      io.to(room.code).emit("room:state", publicRoomState(room));
+      
+      if (room.timer) clearInterval(room.timer);
+      room.timer = setInterval(() => {
+        timeLeft--;
+        io.to(room.code).emit("timer:tick", timeLeft);
+        if (timeLeft <= 0) {
+          clearInterval(room.timer);
+          endRound(room);
+        }
+      }, 1000);
+    }
   });
 
   socket.on("submit", ({ code, answers }, cb) => {
@@ -147,6 +155,21 @@ io.on("connection", (socket) => {
       cb?.({ ok: true });
     }
   });
+
+  socket.on("disconnect", () => {
+    rooms.forEach((room, code) => {
+      if (room.players.has(socket.id)) {
+        room.players.delete(socket.id);
+        if (room.players.size === 0) {
+          if (room.timer) clearInterval(room.timer);
+          rooms.delete(code);
+        } else {
+          if (room.hostSocketId === socket.id) room.hostSocketId = room.players.keys().next().value;
+          io.to(code).emit("room:state", publicRoomState(room));
+        }
+      }
+    });
+  });
 });
 
-server.listen(3000, () => console.log("Server running on port 3000"));
+server.listen(3000, () => console.log("Server ready on port 3000"));
