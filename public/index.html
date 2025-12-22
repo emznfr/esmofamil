@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="fa">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>اسم و فامیل آنلاین</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    body{font-family:system-ui;margin:0;background:#f6f7fb}
+    .app{max-width:520px;margin:14px auto;background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.08);padding:14px}
+    h1{margin:6px 0 10px;font-size:20px}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    input,button,select{padding:10px;border-radius:10px;border:1px solid #ddd;font-size:16px}
+    input{flex:1;min-width:160px}
+    button{cursor:pointer;border:none;background:#2563eb;color:#fff}
+    button.gray{background:#e5e7eb;color:#111}
+    .card{background:#f8fafc;border:1px solid #eef2f7;border-radius:12px;padding:12px;margin-top:10px}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#eef2ff}
+    .muted{color:#555;font-size:14px}
+    .grid{display:grid;grid-template-columns:1fr;gap:8px}
+    .answers{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .title{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .lang button{background:#111;color:#fff;padding:8px 10px;border-radius:10px}
+    .lang button.active{background:#22c55e}
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="title">
+    <h1 id="t_title">اسم و فامیل آنلاین</h1>
+    <div class="lang">
+      <button id="btn_fa" class="active">FA</button>
+      <button id="btn_en">EN</button>
+      <button id="btn_fr">FR</button>
+    </div>
+  </div>
+
+  <div class="card" id="screen_auth">
+    <div class="grid">
+      <input id="name" placeholder="نام بازیکن" />
+      <div class="row">
+        <button id="createRoom">ساخت اتاق</button>
+        <input id="roomCode" placeholder="کد اتاق" />
+        <button id="joinRoom" class="gray">ورود</button>
+      </div>
+      <div class="muted" id="authHint">برای بچه‌ها: یکی اتاق بسازه، بقیه با کد وارد شن.</div>
+    </div>
+  </div>
+
+  <div class="card" id="screen_room" style="display:none;">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <div>
+        <span class="pill" id="roomPill">اتاق: -----</span>
+        <span class="pill" id="statusPill">وضعیت: لابی</span>
+      </div>
+      <div class="pill" id="timerPill">⏳ --</div>
+    </div>
+
+    <div class="muted" id="playersTitle" style="margin-top:10px">بازیکن‌ها:</div>
+    <div id="players"></div>
+
+    <div id="hostControls" style="margin-top:10px;display:none">
+      <div class="row">
+        <input id="duration" type="number" value="90" min="20" max="300" />
+        <button id="startGame">شروع راند</button>
+        <button id="forceReview" class="gray">پایان و نمایش جواب‌ها</button>
+      </div>
+      <div class="muted" id="hostHint">فقط میزبان می‌تونه راند رو شروع کنه.</div>
+    </div>
+
+    <div id="playArea" style="display:none;margin-top:10px">
+      <div class="card">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <div class="pill" id="letterPill">حرف: -</div>
+          <div class="muted" id="roundPill">راند: -</div>
+        </div>
+
+        <div class="answers" style="margin-top:10px">
+          <input data-cat="name" placeholder="اسم" />
+          <input data-cat="family" placeholder="فامیل" />
+          <input data-cat="city" placeholder="شهر" />
+          <input data-cat="country" placeholder="کشور" />
+          <input data-cat="food" placeholder="غذا" />
+          <input data-cat="animal" placeholder="حیوان" />
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <button id="submit">ارسال جواب‌ها</button>
+        </div>
+        <div class="muted" id="submitHint">بعد از ارسال، منتظر بقیه می‌مونی.</div>
+      </div>
+    </div>
+
+    <div id="reviewArea" style="display:none;margin-top:10px"></div>
+  </div>
+</div>
+
+<script>
+  const socket = io();
+
+  // i18n ساده
+  const I18N = {
+    fa: {
+      title:"اسم و فامیل آنلاین",
+      namePH:"نام بازیکن",
+      create:"ساخت اتاق",
+      join:"ورود",
+      roomPH:"کد اتاق",
+      authHint:"برای بچه‌ها: یکی اتاق بسازه، بقیه با کد وارد شن.",
+      players:"بازیکن‌ها:",
+      statusLobby:"وضعیت: لابی",
+      statusPlaying:"وضعیت: بازی",
+      statusReview:"وضعیت: بررسی",
+      hostHint:"فقط میزبان می‌تونه راند رو شروع کنه.",
+      start:"شروع راند",
+      endShow:"پایان و نمایش جواب‌ها",
+      durationPH:"زمان (ثانیه)",
+      letter:"حرف:",
+      round:"راند:",
+      submit:"ارسال جواب‌ها",
+      submitHint:"بعد از ارسال، منتظر بقیه می‌مونی.",
+      room:"اتاق:"
+    },
+    en: {
+      title:"Online Name Game",
+      namePH:"Player name",
+      create:"Create room",
+      join:"Join",
+      roomPH:"Room code",
+      authHint:"For kids: one creates a room, others join with the code.",
+      players:"Players:",
+      statusLobby:"Status: Lobby",
+      statusPlaying:"Status: Playing",
+      statusReview:"Status: Review",
+      hostHint:"Only the host can start the round.",
+      start:"Start round",
+      endShow:"End & show answers",
+      durationPH:"Time (sec)",
+      letter:"Letter:",
+      round:"Round:",
+      submit:"Submit answers",
+      submitHint:"After submitting, wait for others.",
+      room:"Room:"
+    },
+    fr: {
+      title:"Jeu du Petit Bac en ligne",
+      namePH:"Nom du joueur",
+      create:"Créer la salle",
+      join:"Rejoindre",
+      roomPH:"Code salle",
+      authHint:"Pour les enfants : un crée la salle, les autres rejoignent avec le code.",
+      players:"Joueurs :",
+      statusLobby:"Statut : Lobby",
+      statusPlaying:"Statut : En jeu",
+      statusReview:"Statut : Correction",
+      hostHint:"Seul l'hôte peut démarrer la manche.",
+      start:"Démarrer",
+      endShow:"Terminer & afficher",
+      durationPH:"Temps (s)",
+      letter:"Lettre :",
+      round:"Manche :",
+      submit:"Envoyer",
+      submitHint:"Après l'envoi, attends les autres.",
+      room:"Salle :"
+    }
+  };
+
+  let lang = "fa";
+  let currentRoom = null;
+  let isHost = false;
+  let endsAt = null;
+  let timerInt = null;
+
+  function t(k){ return I18N[lang][k] || k; }
+
+  function setLang(newLang){
+    lang = newLang;
+    document.getElementById("btn_fa").classList.toggle("active", lang==="fa");
+    document.getElementById("btn_en").classList.toggle("active", lang==="en");
+    document.getElementById("btn_fr").classList.toggle("active", lang==="fr");
+
+    document.getElementById("t_title").textContent = t("title");
+    document.getElementById("name").placeholder = t("namePH");
+    document.getElementById("createRoom").textContent = t("create");
+    document.getElementById("joinRoom").textContent = t("join");
+    document.getElementById("roomCode").placeholder = t("roomPH");
+    document.getElementById("authHint").textContent = t("authHint");
+    document.getElementById("playersTitle").textContent = t("players");
+    document.getElementById("hostHint").textContent = t("hostHint");
+    document.getElementById("startGame").textContent = t("start");
+    document.getElementById("forceReview").textContent = t("endShow");
+    document.getElementById("duration").placeholder = t("durationPH");
+    document.getElementById("submit").textContent = t("submit");
+    document.getElementById("submitHint").textContent = t("submitHint");
+  }
+
+  document.getElementById("btn_fa").onclick = () => setLang("fa");
+  document.getElementById("btn_en").onclick = () => setLang("en");
+  document.getElementById("btn_fr").onclick = () => setLang("fr");
+  setLang("fa");
+
+  const screenAuth = document.getElementById("screen_auth");
+  const screenRoom = document.getElementById("screen_room");
+  const hostControls = document.getElementById("hostControls");
+  const playArea = document.getElementById("playArea");
+  const reviewArea = document.getElementById("reviewArea");
+
+  document.getElementById("createRoom").onclick = () => {
+    const name = document.getElementById("name").value.trim() || "Player";
+    socket.emit("room:create", { name }, (res) => {
+      if (!res?.ok) return alert("Error");
+      currentRoom = res.code;
+      isHost = true;
+      enterRoomUI();
+    });
+  };
+
+  document.getElementById("joinRoom").onclick = () => {
+    const name = document.getElementById("name").value.trim() || "Player";
+    const code = document.getElementById("roomCode").value.trim().toUpperCase();
+    socket.emit("room:join", { code, name }, (res) => {
+      if (!res?.ok) return alert(res.error || "Error");
+      currentRoom = res.code;
+      isHost = !!res.isHost;
+      enterRoomUI();
+    });
+  };
+
+  function enterRoomUI(){
+    screenAuth.style.display = "none";
+    screenRoom.style.display = "block";
+  }
+
+  document.getElementById("startGame").onclick = () => {
+    socket.emit("game:start", { code: currentRoom, durationSec: Number(document.getElementById("duration").value || 90) });
+  };
+
+  document.getElementById("forceReview").onclick = () => {
+    socket.emit("game:forceReview", { code: currentRoom });
+  };
+
+  document.getElementById("submit").onclick = () => {
+    const inputs = document.querySelectorAll("[data-cat]");
+    const answers = {};
+    inputs.forEach(i => answers[i.dataset.cat] = i.value.trim());
+    socket.emit("game:submit", { code: currentRoom, answers }, (res) => {
+      if (res?.ok) alert("✅ Sent!");
+    });
+  };
+
+  socket.on("room:state", (state) => {
+    if (!state?.code) return;
+    if (currentRoom && state.code !== currentRoom) return;
+
+    document.getElementById("roomPill").textContent = `${t("room")} ${state.code}`;
+    const statusText = state.status === "lobby" ? t("statusLobby")
+      : state.status === "playing" ? t("statusPlaying")
+      : t("statusReview");
+    document.getElementById("statusPill").textContent = statusText;
+
+    // players
+    const list = state.players.map(p => `• ${p.name}${(p.id===state.hostSocketId) ? " 👑" : ""}`).join("<br>");
+    document.getElementById("players").innerHTML = list || "-";
+
+    isHost = (state.hostSocketId === socket.id);
+    hostControls.style.display = isHost ? "block" : "none";
+
+    if (state.status === "playing") {
+      playArea.style.display = "block";
+      reviewArea.style.display = "none";
+      document.getElementById("letterPill").textContent = `${t("letter")} ${state.letter || "-"}`;
+      document.getElementById("roundPill").textContent = `${t("round")} ${state.round}`;
+      endsAt = state.endsAt;
+      startTimer();
+    } else {
+      playArea.style.display = "none";
+      endsAt = null;
+      stopTimer();
+    }
+  });
+
+  socket.on("game:started", (state) => {
+    // reset inputs
+    document.querySelectorAll("[data-cat]").forEach(i => i.value = "");
+  });
+
+  socket.on("game:review", ({ room, submissions }) => {
+    stopTimer();
+    playArea.style.display = "none";
+    reviewArea.style.display = "block";
+
+    const rows = submissions.map(s => {
+      const a = s.answers || {};
+      return `<div class="card">
+        <div class="pill">${s.playerName}</div>
+        <div class="muted" style="margin-top:8px">
+          name: ${escape(a.name)}<br>
+          family: ${escape(a.family)}<br>
+          city: ${escape(a.city)}<br>
+          country: ${escape(a.country)}<br>
+          food: ${escape(a.food)}<br>
+          animal: ${escape(a.animal)}
+        </div>
+      </div>`;
+    }).join("");
+
+    reviewArea.innerHTML = `
+      <div class="card">
+        <div class="pill">${t("letter")} ${room.letter || "-"}</div>
+        <div class="muted" style="margin-top:8px">Submissions: ${submissions.length}</div>
+      </div>
+      ${rows || '<div class="card">No submissions</div>'}
+    `;
+  });
+
+  function startTimer(){
+    stopTimer();
+    timerInt = setInterval(() => {
+      const pill = document.getElementById("timerPill");
+      if (!endsAt) { pill.textContent = "⏳ --"; return; }
+      const left = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+      pill.textContent = `⏳ ${left}s`;
+    }, 250);
+  }
+  function stopTimer(){
+    clearInterval(timerInt);
+    timerInt = null;
+    document.getElementById("timerPill").textContent = "⏳ --";
+  }
+  function escape(s){
+    return String(s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+  }
+</script>
+</body>
+</html>
