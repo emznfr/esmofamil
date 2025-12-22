@@ -19,8 +19,6 @@ function makeRoomCode() {
     return code;
 }
 
-function normalizeAnswer(v) { return String(v ?? "").trim().toLowerCase(); }
-
 function ensureRoom(code) {
     if (!rooms.has(code)) {
         rooms.set(code, {
@@ -39,58 +37,10 @@ function publicRoomState(room) {
         durationSec: room.durationSec, categories: room.categories,
         totals: Array.from(room.totalScores.entries()).map(([id, score]) => ({ id, score })),
         players: Array.from(room.players.entries()).map(([id, p]) => ({ id, name: p.name })),
-        submissionsCount: room.submissions.size,
+        submissions: Array.from(room.submissions.entries()).map(([id, answers]) => ({
+            id, name: room.players.get(id)?.name, answers
+        }))
     };
-}
-
-function computeRoundScores(submissions, categories) {
-    const roundScores = new Map();
-    for (const pid of submissions.keys()) roundScores.set(pid, 0);
-    for (const cat of categories) {
-        const counts = new Map();
-        for (const [, answers] of submissions.entries()) {
-            const norm = normalizeAnswer(answers?.[cat]);
-            if (norm) counts.set(norm, (counts.get(norm) || 0) + 1);
-        }
-        for (const [pid, answers] of submissions.entries()) {
-            const norm = normalizeAnswer(answers?.[cat]);
-            if (norm) {
-                const pts = (counts.get(norm) >= 2) ? 10 : 20;
-                roundScores.set(pid, (roundScores.get(pid) || 0) + pts);
-            }
-        }
-    }
-    return roundScores;
-}
-
-function startRound(room, durationSec) {
-    room.submissions.clear();
-    room.status = "playing";
-    room.round += 1;
-    room.durationSec = Math.max(30, Number(durationSec || DEFAULT_DURATION_SEC));
-    const letters = ["ا","ب","پ","ت","ث","ج","چ","ح","خ","د","ذ","ر","ز","ژ","س","ش","ص","ض","ط","ظ","ع","غ","ف","ق","ک","گ","ل","م","ن","و","ه","ی"];
-    room.letter = letters[Math.floor(Math.random() * letters.length)];
-    room.endsAt = Date.now() + room.durationSec * 1000;
-
-    if (room.timer) clearTimeout(room.timer);
-    room.timer = setTimeout(() => endRound(room), room.durationSec * 1000);
-
-    io.to(room.code).emit("room:state", publicRoomState(room));
-}
-
-function endRound(room) {
-    if (room.status !== "playing") return;
-    room.status = "lobby";
-    room.endsAt = null;
-    const roundScores = computeRoundScores(room.submissions, room.categories);
-    for (const [pid, pts] of roundScores.entries()) {
-        room.totalScores.set(pid, (room.totalScores.get(pid) || 0) + pts);
-    }
-    io.to(room.code).emit("scores:update", {
-        totals: Array.from(room.totalScores.entries()).map(([id, score]) => ({ id, score })),
-        round: Array.from(roundScores.entries()).map(([id, score]) => ({ id, score })),
-    });
-    io.to(room.code).emit("room:state", publicRoomState(room));
 }
 
 io.on("connection", (socket) => {
@@ -116,22 +66,48 @@ io.on("connection", (socket) => {
         cb?.({ ok: true, code });
     });
 
-    socket.on("round:start", ({ code, durationSec }, cb) => {
+    socket.on("round:start", ({ code, durationSec }) => {
         const room = rooms.get(code);
         if (room && room.hostSocketId === socket.id) {
-            startRound(room, durationSec);
-            cb?.({ ok: true });
+            room.submissions.clear();
+            room.status = "playing";
+            room.round += 1;
+            room.durationSec = Number(durationSec || DEFAULT_DURATION_SEC);
+            const letters = ["ا","ب","پ","ت","ث","ج","چ","ح","خ","د","ذ","ر","ز","ژ","س","ش","ص","ض","ط","ظ","ع","غ","ف","ق","ک","گ","ل","م","ن","و","ه","ی"];
+            room.letter = letters[Math.floor(Math.random() * letters.length)];
+            room.endsAt = Date.now() + room.durationSec * 1000;
+            if (room.timer) clearTimeout(room.timer);
+            room.timer = setTimeout(() => {
+                room.status = "review"; // تغییر وضعیت به بازبینی کلمات
+                io.to(room.code).emit("room:state", publicRoomState(room));
+            }, room.durationSec * 1000);
+            io.to(room.code).emit("room:state", publicRoomState(room));
         }
     });
 
     socket.on("submit", ({ code, answers }, cb) => {
         const room = rooms.get(code);
         if (room && room.status === "playing") {
-            const safe = {};
-            for (const cat of room.categories) safe[cat] = String(answers?.[cat] ?? "");
-            room.submissions.set(socket.id, safe);
-            io.to(code).emit("room:state", publicRoomState(room));
+            room.submissions.set(socket.id, answers);
             cb?.({ ok: true });
+        }
+    });
+
+    // ثبت امتیاز دستی توسط میزبان
+    socket.on("host:assign_score", ({ code, playerId, points }) => {
+        const room = rooms.get(code);
+        if (room && room.hostSocketId === socket.id) {
+            const currentTotal = room.totalScores.get(playerId) || 0;
+            room.totalScores.set(playerId, currentTotal + Number(points));
+            io.to(code).emit("room:state", publicRoomState(room));
+        }
+    });
+
+    socket.on("round:finish_review", ({ code }) => {
+        const room = rooms.get(code);
+        if (room && room.hostSocketId === socket.id) {
+            room.status = "lobby";
+            io.to(code).emit("room:state", publicRoomState(room));
         }
     });
 
@@ -151,4 +127,4 @@ io.on("connection", (socket) => {
     });
 });
 
-server.listen(3000, () => console.log(`Server on 3000`));
+server.listen(3000, () => console.log("Server running on port 3000"));
