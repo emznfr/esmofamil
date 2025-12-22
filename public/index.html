@@ -4,332 +4,416 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>اسم و فامیل آنلاین</title>
-  <script src="/socket.io/socket.io.js"></script>
   <style>
-    body{font-family:system-ui;margin:0;background:#f6f7fb}
-    .app{max-width:520px;margin:14px auto;background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.08);padding:14px}
-    h1{margin:6px 0 10px;font-size:20px}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0;background:#f6f7fb}
+    .wrap{max-width:760px;margin:0 auto;padding:14px}
+    .card{background:#fff;border-radius:16px;padding:14px;box-shadow:0 6px 18px rgba(0,0,0,.06);margin-bottom:12px}
+    h1{margin:0 0 6px;font-size:20px}
+    .sub{color:#666;font-size:13px;margin-bottom:10px}
     .row{display:flex;gap:10px;flex-wrap:wrap}
-    input,button,select{padding:10px;border-radius:10px;border:1px solid #ddd;font-size:16px}
-    input{flex:1;min-width:160px}
-    button{cursor:pointer;border:none;background:#2563eb;color:#fff}
-    button.gray{background:#e5e7eb;color:#111}
-    .card{background:#f8fafc;border:1px solid #eef2f7;border-radius:12px;padding:12px;margin-top:10px}
-    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#eef2ff}
-    .muted{color:#555;font-size:14px}
-    .grid{display:grid;grid-template-columns:1fr;gap:8px}
-    .answers{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .title{display:flex;justify-content:space-between;align-items:center;gap:10px}
-    .lang button{background:#111;color:#fff;padding:8px 10px;border-radius:10px}
-    .lang button.active{background:#22c55e}
+    .row > *{flex:1;min-width:140px}
+    input,select,button{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #e3e6f0;font-size:14px;box-sizing:border-box}
+    button{border:none;background:#2563eb;color:#fff;font-weight:700;cursor:pointer}
+    button.secondary{background:#eef2ff;color:#1e3a8a}
+    button.danger{background:#ef4444}
+    .muted{font-size:12px;color:#6b7280}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#f1f5ff;color:#1e3a8a;font-weight:700;font-size:12px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width:560px){.grid{grid-template-columns:1fr}}
+    label{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#111827;margin-bottom:6px}
+    .scoreRow{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eef2f7}
+    .scoreRow:last-child{border-bottom:none}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .timer{font-weight:800}
+    .badge{padding:6px 10px;border-radius:10px;background:#f0fdf4;color:#166534;font-weight:800;font-size:12px}
+    .badge.red{background:#fef2f2;color:#991b1b}
   </style>
 </head>
 <body>
-<div class="app">
-  <div class="title">
-    <h1 id="t_title">اسم و فامیل آنلاین</h1>
-    <div class="lang">
-      <button id="btn_fa" class="active">FA</button>
-      <button id="btn_en">EN</button>
-      <button id="btn_fr">FR</button>
-    </div>
-  </div>
+<div class="wrap">
 
-  <div class="card" id="screen_auth">
-    <div class="grid">
-      <input id="name" placeholder="نام بازیکن" />
-      <div class="row">
-        <button id="createRoom">ساخت اتاق</button>
-        <input id="roomCode" placeholder="کد اتاق" />
-        <button id="joinRoom" class="gray">ورود</button>
-      </div>
-      <div class="muted" id="authHint">برای بچه‌ها: یکی اتاق بسازه، بقیه با کد وارد شن.</div>
-    </div>
-  </div>
-
-  <div class="card" id="screen_room" style="display:none;">
-    <div class="row" style="justify-content:space-between;align-items:center">
+  <div class="card">
+    <div class="topbar">
       <div>
-        <span class="pill" id="roomPill">اتاق: -----</span>
-        <span class="pill" id="statusPill">وضعیت: لابی</span>
+        <h1 id="appTitle">اسم و فامیل آنلاین</h1>
+        <div class="sub" id="appSubtitle">بازی چندنفره با همزمانی واقعی 🎮</div>
       </div>
-      <div class="pill" id="timerPill">⏳ --</div>
+      <select id="langSelect" style="max-width:170px">
+        <option value="fa">فارسی</option>
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+      </select>
     </div>
-
-    <div class="muted" id="playersTitle" style="margin-top:10px">بازیکن‌ها:</div>
-    <div id="players"></div>
-
-    <div id="hostControls" style="margin-top:10px;display:none">
-      <div class="row">
-        <input id="duration" type="number" value="90" min="20" max="300" />
-        <button id="startGame">شروع راند</button>
-        <button id="forceReview" class="gray">پایان و نمایش جواب‌ها</button>
-      </div>
-      <div class="muted" id="hostHint">فقط میزبان می‌تونه راند رو شروع کنه.</div>
-    </div>
-
-    <div id="playArea" style="display:none;margin-top:10px">
-      <div class="card">
-        <div class="row" style="justify-content:space-between;align-items:center">
-          <div class="pill" id="letterPill">حرف: -</div>
-          <div class="muted" id="roundPill">راند: -</div>
-        </div>
-
-        <div class="answers" style="margin-top:10px">
-          <input data-cat="name" placeholder="اسم" />
-          <input data-cat="family" placeholder="فامیل" />
-          <input data-cat="city" placeholder="شهر" />
-          <input data-cat="country" placeholder="کشور" />
-          <input data-cat="food" placeholder="غذا" />
-          <input data-cat="animal" placeholder="حیوان" />
-        </div>
-
-        <div class="row" style="margin-top:10px">
-          <button id="submit">ارسال جواب‌ها</button>
-        </div>
-        <div class="muted" id="submitHint">بعد از ارسال، منتظر بقیه می‌مونی.</div>
-      </div>
-    </div>
-
-    <div id="reviewArea" style="display:none;margin-top:10px"></div>
   </div>
+
+  <div class="card" id="scoresBox">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div id="scoresTitle" style="font-weight:900">امتیازها</div>
+      <div class="pill" id="roomPill">—</div>
+    </div>
+    <div id="scoresList" class="muted">هنوز امتیازی ثبت نشده.</div>
+  </div>
+
+  <div class="card" id="lobbyCard">
+    <div class="row">
+      <input id="nameInput" placeholder="نام شما" />
+      <input id="codeInput" placeholder="کد اتاق (برای ورود)" />
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button id="createBtn">ساخت اتاق</button>
+      <button id="joinBtn" class="secondary">ورود به اتاق</button>
+    </div>
+
+    <div style="margin-top:12px" class="row">
+      <div>
+        <label><span id="timeLabel">زمان (ثانیه)</span><span class="muted" id="minTimeHint">حداقل 120</span></label>
+        <input id="durationSec" type="number" min="120" value="120" />
+      </div>
+      <div>
+        <label><span>وضعیت</span><span id="statusBadge" class="badge">Lobby</span></label>
+        <div class="row">
+          <button id="startRoundBtn">شروع راند (میزبان)</button>
+          <button id="endRoundBtn" class="danger">پایان راند</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:10px" class="muted">
+      نکته: امتیازدهی این نسخه ساده است: پاسخ تکراری (یکسان) = 10، پاسخ یکتا = 20.
+    </div>
+  </div>
+
+  <div class="card" id="playCard" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div>
+        <span class="pill">Round: <span id="roundNum">0</span></span>
+        <span class="pill">حرف: <span id="letterBox">—</span></span>
+      </div>
+      <div class="timer" id="timerText">—</div>
+    </div>
+
+    <div id="inputsGrid" class="grid"></div>
+
+    <div class="row" style="margin-top:10px">
+      <button id="submitBtn">ارسال پاسخ‌ها</button>
+      <button id="leaveBtn" class="secondary">خروج از اتاق</button>
+    </div>
+  </div>
+
 </div>
 
+<script src="/socket.io/socket.io.js"></script>
 <script>
   const socket = io();
 
-  // i18n ساده
-  const I18N = {
+  const CATEGORY_KEYS = ["name","family","city","country","animal","food","fruit","object","color","job"];
+
+  const i18n = {
     fa: {
-      title:"اسم و فامیل آنلاین",
-      namePH:"نام بازیکن",
-      create:"ساخت اتاق",
-      join:"ورود",
-      roomPH:"کد اتاق",
-      authHint:"برای بچه‌ها: یکی اتاق بسازه، بقیه با کد وارد شن.",
-      players:"بازیکن‌ها:",
-      statusLobby:"وضعیت: لابی",
-      statusPlaying:"وضعیت: بازی",
-      statusReview:"وضعیت: بررسی",
-      hostHint:"فقط میزبان می‌تونه راند رو شروع کنه.",
-      start:"شروع راند",
-      endShow:"پایان و نمایش جواب‌ها",
-      durationPH:"زمان (ثانیه)",
-      letter:"حرف:",
-      round:"راند:",
-      submit:"ارسال جواب‌ها",
-      submitHint:"بعد از ارسال، منتظر بقیه می‌مونی.",
-      room:"اتاق:"
+      title: "اسم و فامیل آنلاین",
+      subtitle: "بازی چندنفره با همزمانی واقعی 🎮",
+      buttons: {
+        create: "ساخت اتاق",
+        join: "ورود به اتاق",
+        start: "شروع راند (میزبان)",
+        end: "پایان راند",
+        submit: "ارسال پاسخ‌ها",
+        leave: "خروج از اتاق"
+      },
+      placeholders: { name: "نام شما", code: "کد اتاق (برای ورود)" },
+      categories: {
+        name:"اسم", family:"فامیل", city:"شهر", country:"کشور", animal:"حیوان",
+        food:"غذا", fruit:"میوه", object:"اشیاء", color:"رنگ", job:"شغل"
+      },
+      timeLabel: "زمان (ثانیه)",
+      minTimeHint: "حداقل 120",
+      scoresTitle: "امتیازها",
+      lobby: "لابی",
+      playing: "در حال بازی"
     },
     en: {
-      title:"Online Name Game",
-      namePH:"Player name",
-      create:"Create room",
-      join:"Join",
-      roomPH:"Room code",
-      authHint:"For kids: one creates a room, others join with the code.",
-      players:"Players:",
-      statusLobby:"Status: Lobby",
-      statusPlaying:"Status: Playing",
-      statusReview:"Status: Review",
-      hostHint:"Only the host can start the round.",
-      start:"Start round",
-      endShow:"End & show answers",
-      durationPH:"Time (sec)",
-      letter:"Letter:",
-      round:"Round:",
-      submit:"Submit answers",
-      submitHint:"After submitting, wait for others.",
-      room:"Room:"
+      title: "Online Name Game",
+      subtitle: "Real-time multiplayer 🎮",
+      buttons: {
+        create: "Create room",
+        join: "Join room",
+        start: "Start round (Host)",
+        end: "End round",
+        submit: "Submit answers",
+        leave: "Leave room"
+      },
+      placeholders: { name: "Your name", code: "Room code" },
+      categories: {
+        name:"Name", family:"Family", city:"City", country:"Country", animal:"Animal",
+        food:"Food", fruit:"Fruit", object:"Object", color:"Color", job:"Job"
+      },
+      timeLabel: "Time (sec)",
+      minTimeHint: "Minimum 120",
+      scoresTitle: "Scores",
+      lobby: "Lobby",
+      playing: "Playing"
     },
     fr: {
-      title:"Jeu du Petit Bac en ligne",
-      namePH:"Nom du joueur",
-      create:"Créer la salle",
-      join:"Rejoindre",
-      roomPH:"Code salle",
-      authHint:"Pour les enfants : un crée la salle, les autres rejoignent avec le code.",
-      players:"Joueurs :",
-      statusLobby:"Statut : Lobby",
-      statusPlaying:"Statut : En jeu",
-      statusReview:"Statut : Correction",
-      hostHint:"Seul l'hôte peut démarrer la manche.",
-      start:"Démarrer",
-      endShow:"Terminer & afficher",
-      durationPH:"Temps (s)",
-      letter:"Lettre :",
-      round:"Manche :",
-      submit:"Envoyer",
-      submitHint:"Après l'envoi, attends les autres.",
-      room:"Salle :"
+      title: "Petit Bac en ligne",
+      subtitle: "Multijoueur en temps réel 🎮",
+      buttons: {
+        create: "Créer une salle",
+        join: "Rejoindre",
+        start: "Démarrer (Hôte)",
+        end: "Fin du tour",
+        submit: "Envoyer",
+        leave: "Quitter"
+      },
+      placeholders: { name: "Votre nom", code: "Code de salle" },
+      categories: {
+        name:"Prénom", family:"Nom", city:"Ville", country:"Pays", animal:"Animal",
+        food:"Plat", fruit:"Fruit", object:"Objet", color:"Couleur", job:"Métier"
+      },
+      timeLabel: "Temps (sec)",
+      minTimeHint: "Minimum 120",
+      scoresTitle: "Scores",
+      lobby: "Lobby",
+      playing: "En jeu"
     }
   };
 
-  let lang = "fa";
-  let currentRoom = null;
-  let isHost = false;
-  let endsAt = null;
+  let currentLang = localStorage.getItem("lang") || "fa";
+  const $ = (id) => document.getElementById(id);
+
+  // UI elements
+  const langSelect = $("langSelect");
+  const appTitle = $("appTitle");
+  const appSubtitle = $("appSubtitle");
+
+  const nameInput = $("nameInput");
+  const codeInput = $("codeInput");
+  const createBtn = $("createBtn");
+  const joinBtn = $("joinBtn");
+
+  const durationSecInput = $("durationSec");
+  const startRoundBtn = $("startRoundBtn");
+  const endRoundBtn = $("endRoundBtn");
+  const submitBtn = $("submitBtn");
+  const leaveBtn = $("leaveBtn");
+
+  const lobbyCard = $("lobbyCard");
+  const playCard = $("playCard");
+
+  const inputsGrid = $("inputsGrid");
+  const roundNum = $("roundNum");
+  const letterBox = $("letterBox");
+  const timerText = $("timerText");
+  const scoresList = $("scoresList");
+  const scoresTitle = $("scoresTitle");
+  const roomPill = $("roomPill");
+  const statusBadge = $("statusBadge");
+  const timeLabel = $("timeLabel");
+  const minTimeHint = $("minTimeHint");
+
+  let currentRoomCode = null;
+  let currentRoomState = null;
   let timerInt = null;
 
-  function t(k){ return I18N[lang][k] || k; }
-
-  function setLang(newLang){
-    lang = newLang;
-    document.getElementById("btn_fa").classList.toggle("active", lang==="fa");
-    document.getElementById("btn_en").classList.toggle("active", lang==="en");
-    document.getElementById("btn_fr").classList.toggle("active", lang==="fr");
-
-    document.getElementById("t_title").textContent = t("title");
-    document.getElementById("name").placeholder = t("namePH");
-    document.getElementById("createRoom").textContent = t("create");
-    document.getElementById("joinRoom").textContent = t("join");
-    document.getElementById("roomCode").placeholder = t("roomPH");
-    document.getElementById("authHint").textContent = t("authHint");
-    document.getElementById("playersTitle").textContent = t("players");
-    document.getElementById("hostHint").textContent = t("hostHint");
-    document.getElementById("startGame").textContent = t("start");
-    document.getElementById("forceReview").textContent = t("endShow");
-    document.getElementById("duration").placeholder = t("durationPH");
-    document.getElementById("submit").textContent = t("submit");
-    document.getElementById("submitHint").textContent = t("submitHint");
+  // enforce min 120
+  function clampDuration() {
+    const v = Number(durationSecInput.value || 120);
+    durationSecInput.value = String(Math.max(120, v));
   }
+  durationSecInput.min = 120;
+  clampDuration();
+  durationSecInput.addEventListener("change", clampDuration);
 
-  document.getElementById("btn_fa").onclick = () => setLang("fa");
-  document.getElementById("btn_en").onclick = () => setLang("en");
-  document.getElementById("btn_fr").onclick = () => setLang("fr");
-  setLang("fa");
-
-  const screenAuth = document.getElementById("screen_auth");
-  const screenRoom = document.getElementById("screen_room");
-  const hostControls = document.getElementById("hostControls");
-  const playArea = document.getElementById("playArea");
-  const reviewArea = document.getElementById("reviewArea");
-
-  document.getElementById("createRoom").onclick = () => {
-    const name = document.getElementById("name").value.trim() || "Player";
-    socket.emit("room:create", { name }, (res) => {
-      if (!res?.ok) return alert("Error");
-      currentRoom = res.code;
-      isHost = true;
-      enterRoomUI();
-    });
-  };
-
-  document.getElementById("joinRoom").onclick = () => {
-    const name = document.getElementById("name").value.trim() || "Player";
-    const code = document.getElementById("roomCode").value.trim().toUpperCase();
-    socket.emit("room:join", { code, name }, (res) => {
-      if (!res?.ok) return alert(res.error || "Error");
-      currentRoom = res.code;
-      isHost = !!res.isHost;
-      enterRoomUI();
-    });
-  };
-
-  function enterRoomUI(){
-    screenAuth.style.display = "none";
-    screenRoom.style.display = "block";
-  }
-
-  document.getElementById("startGame").onclick = () => {
-    socket.emit("game:start", { code: currentRoom, durationSec: Number(document.getElementById("duration").value || 90) });
-  };
-
-  document.getElementById("forceReview").onclick = () => {
-    socket.emit("game:forceReview", { code: currentRoom });
-  };
-
-  document.getElementById("submit").onclick = () => {
-    const inputs = document.querySelectorAll("[data-cat]");
-    const answers = {};
-    inputs.forEach(i => answers[i.dataset.cat] = i.value.trim());
-    socket.emit("game:submit", { code: currentRoom, answers }, (res) => {
-      if (res?.ok) alert("✅ Sent!");
-    });
-  };
-
-  socket.on("room:state", (state) => {
-    if (!state?.code) return;
-    if (currentRoom && state.code !== currentRoom) return;
-
-    document.getElementById("roomPill").textContent = `${t("room")} ${state.code}`;
-    const statusText = state.status === "lobby" ? t("statusLobby")
-      : state.status === "playing" ? t("statusPlaying")
-      : t("statusReview");
-    document.getElementById("statusPill").textContent = statusText;
-
-    // players
-    const list = state.players.map(p => `• ${p.name}${(p.id===state.hostSocketId) ? " 👑" : ""}`).join("<br>");
-    document.getElementById("players").innerHTML = list || "-";
-
-    isHost = (state.hostSocketId === socket.id);
-    hostControls.style.display = isHost ? "block" : "none";
-
-    if (state.status === "playing") {
-      playArea.style.display = "block";
-      reviewArea.style.display = "none";
-      document.getElementById("letterPill").textContent = `${t("letter")} ${state.letter || "-"}`;
-      document.getElementById("roundPill").textContent = `${t("round")} ${state.round}`;
-      endsAt = state.endsAt;
-      startTimer();
-    } else {
-      playArea.style.display = "none";
-      endsAt = null;
-      stopTimer();
-    }
+  langSelect.value = currentLang;
+  langSelect.addEventListener("change", () => {
+    currentLang = langSelect.value;
+    localStorage.setItem("lang", currentLang);
+    applyLang();
+    renderInputs(); // labels/placeholder update
+    renderScoresFromState(); // text update
   });
 
-  socket.on("game:started", (state) => {
-    // reset inputs
-    document.querySelectorAll("[data-cat]").forEach(i => i.value = "");
-  });
+  function t() { return i18n[currentLang]; }
 
-  socket.on("game:review", ({ room, submissions }) => {
-    stopTimer();
-    playArea.style.display = "none";
-    reviewArea.style.display = "block";
+  function applyLang() {
+    appTitle.textContent = t().title;
+    appSubtitle.textContent = t().subtitle;
 
-    const rows = submissions.map(s => {
-      const a = s.answers || {};
-      return `<div class="card">
-        <div class="pill">${s.playerName}</div>
-        <div class="muted" style="margin-top:8px">
-          name: ${escape(a.name)}<br>
-          family: ${escape(a.family)}<br>
-          city: ${escape(a.city)}<br>
-          country: ${escape(a.country)}<br>
-          food: ${escape(a.food)}<br>
-          animal: ${escape(a.animal)}
-        </div>
-      </div>`;
-    }).join("");
+    createBtn.textContent = t().buttons.create;
+    joinBtn.textContent = t().buttons.join;
+    startRoundBtn.textContent = t().buttons.start;
+    endRoundBtn.textContent = t().buttons.end;
+    submitBtn.textContent = t().buttons.submit;
+    leaveBtn.textContent = t().buttons.leave;
 
-    reviewArea.innerHTML = `
-      <div class="card">
-        <div class="pill">${t("letter")} ${room.letter || "-"}</div>
-        <div class="muted" style="margin-top:8px">Submissions: ${submissions.length}</div>
-      </div>
-      ${rows || '<div class="card">No submissions</div>'}
-    `;
-  });
+    nameInput.placeholder = t().placeholders.name;
+    codeInput.placeholder = t().placeholders.code;
 
-  function startTimer(){
-    stopTimer();
-    timerInt = setInterval(() => {
-      const pill = document.getElementById("timerPill");
-      if (!endsAt) { pill.textContent = "⏳ --"; return; }
-      const left = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
-      pill.textContent = `⏳ ${left}s`;
-    }, 250);
+    scoresTitle.textContent = t().scoresTitle;
+    timeLabel.textContent = t().timeLabel;
+    minTimeHint.textContent = t().minTimeHint;
+
+    // rtl for fa
+    document.documentElement.dir = (currentLang === "fa") ? "rtl" : "ltr";
+    document.documentElement.lang = currentLang;
   }
-  function stopTimer(){
+
+  applyLang();
+
+  function isHost() {
+    return currentRoomState && currentRoomState.hostSocketId === socket.id;
+  }
+
+  function updateStatusUI() {
+    if (!currentRoomState) return;
+    const playing = currentRoomState.status === "playing";
+    playCard.style.display = playing ? "block" : "none";
+
+    statusBadge.textContent = playing ? t().playing : t().lobby;
+    statusBadge.className = "badge " + (playing ? "red" : "");
+
+    startRoundBtn.disabled = !isHost();
+    endRoundBtn.disabled = !isHost();
+  }
+
+  function startTimer(endsAt) {
     clearInterval(timerInt);
-    timerInt = null;
-    document.getElementById("timerPill").textContent = "⏳ --";
+    function tick() {
+      if (!endsAt) { timerText.textContent = "—"; return; }
+      const left = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+      timerText.textContent = left + "s";
+      if (left <= 0) clearInterval(timerInt);
+    }
+    tick();
+    timerInt = setInterval(tick, 500);
   }
-  function escape(s){
-    return String(s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+
+  function renderInputs() {
+    inputsGrid.innerHTML = "";
+    const cats = (currentRoomState?.categories || CATEGORY_KEYS);
+
+    for (const key of cats) {
+      const label = t().categories[key] || key;
+
+      const box = document.createElement("div");
+      box.className = "card";
+      box.style.marginBottom = "0";
+
+      box.innerHTML = `
+        <label><span data-cat="${key}">${label}</span></label>
+        <input data-answer="${key}" data-ph="${key}" placeholder="${label}" />
+      `;
+      inputsGrid.appendChild(box);
+    }
   }
+
+  function getAnswersFromUI() {
+    const ans = {};
+    document.querySelectorAll("[data-answer]").forEach(inp => {
+      const key = inp.getAttribute("data-answer");
+      ans[key] = inp.value || "";
+    });
+    return ans;
+  }
+
+  function renderScores(totals, players) {
+    if (!totals || totals.length === 0) {
+      scoresList.textContent = (currentLang === "fa") ? "هنوز امتیازی ثبت نشده." : "—";
+      return;
+    }
+    const mapName = new Map(players.map(p => [p.id, p.name]));
+    const sorted = totals.slice().sort((a,b) => (b.score||0) - (a.score||0));
+
+    scoresList.innerHTML = sorted.map(row => {
+      const nm = mapName.get(row.id) || "Player";
+      return `<div class="scoreRow"><span>${nm}</span><strong>${row.score}</strong></div>`;
+    }).join("");
+  }
+
+  function renderScoresFromState() {
+    if (!currentRoomState) return;
+    renderScores(currentRoomState.totals || [], currentRoomState.players || []);
+  }
+
+  // Actions
+  createBtn.addEventListener("click", () => {
+    const name = nameInput.value.trim() || "Player";
+    socket.emit("room:create", { name }, (res) => {
+      if (!res?.ok) return alert("خطا در ساخت اتاق");
+      currentRoomCode = res.code;
+    });
+  });
+
+  joinBtn.addEventListener("click", () => {
+    const name = nameInput.value.trim() || "Player";
+    const code = codeInput.value.trim().toUpperCase();
+    if (!code) return alert("کد اتاق را وارد کن");
+    socket.emit("room:join", { code, name }, (res) => {
+      if (!res?.ok) return alert("اتاق پیدا نشد");
+      currentRoomCode = res.code;
+    });
+  });
+
+  startRoundBtn.addEventListener("click", () => {
+    clampDuration();
+    if (!currentRoomCode) return;
+    socket.emit("round:start", { code: currentRoomCode, durationSec: Number(durationSecInput.value) }, (res) => {
+      if (!res?.ok) alert("فقط میزبان می‌تواند شروع کند.");
+    });
+  });
+
+  endRoundBtn.addEventListener("click", () => {
+    if (!currentRoomCode) return;
+    socket.emit("round:end", { code: currentRoomCode }, (res) => {
+      if (!res?.ok) alert("فقط میزبان می‌تواند پایان دهد.");
+    });
+  });
+
+  submitBtn.addEventListener("click", () => {
+    if (!currentRoomCode) return;
+    socket.emit("submit", { code: currentRoomCode, answers: getAnswersFromUI() }, (res) => {
+      if (!res?.ok) alert("ارسال نشد (ممکن است راند تمام شده باشد).");
+    });
+  });
+
+  leaveBtn.addEventListener("click", () => {
+    if (!currentRoomCode) return;
+    socket.emit("room:leave", { code: currentRoomCode });
+    currentRoomCode = null;
+    currentRoomState = null;
+    roomPill.textContent = "—";
+    scoresList.textContent = (currentLang === "fa") ? "هنوز امتیازی ثبت نشده." : "—";
+    playCard.style.display = "none";
+    statusBadge.textContent = t().lobby;
+  });
+
+  // Server events
+  socket.on("room:state", (state) => {
+    currentRoomState = state;
+    currentRoomCode = state.code;
+    roomPill.textContent = "ROOM: " + state.code;
+
+    roundNum.textContent = String(state.round || 0);
+    letterBox.textContent = state.letter || "—";
+    startTimer(state.endsAt);
+
+    updateStatusUI();
+
+    // اگر وارد play شده، ورودی‌ها را رندر کن
+    if (state.status === "playing") renderInputs();
+
+    // امتیازها از state
+    renderScoresFromState();
+  });
+
+  socket.on("scores:update", (payload) => {
+    // نمایش امتیازها بالای صفحه
+    if (!currentRoomState) return;
+    // totals از سرور
+    const totals = payload?.totals || [];
+    currentRoomState.totals = totals;
+    renderScoresFromState();
+  });
+
 </script>
 </body>
 </html>
