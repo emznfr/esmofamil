@@ -1,7 +1,6 @@
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
-import crypto from "crypto";
 
 const app = express();
 const server = http.createServer(app);
@@ -10,166 +9,146 @@ const io = new Server(server);
 app.use(express.static("public"));
 
 const DEFAULT_DURATION_SEC = 120;
+const DEFAULT_CATEGORIES = ["name", "family", "city", "country", "animal", "food", "fruit", "object", "color", "job"];
 const rooms = new Map();
 
 function makeRoomCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "";
-  for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
-  return code;
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let code = "";
+    for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    return code;
 }
 
-function normalizeAnswer(v) {
-  return String(v ?? "").trim().toLowerCase();
-}
+function normalizeAnswer(v) { return String(v ?? "").trim().toLowerCase(); }
 
 function ensureRoom(code) {
-  if (!rooms.has(code)) {
-    rooms.set(code, {
-      code, hostSocketId: null, status: "lobby", round: 0, letter: "",
-      endsAt: null, durationSec: DEFAULT_DURATION_SEC, 
-      categories: ["نام", "فامیل", "شهر", "کشور", "حیوان", "غذا", "میوه", "اشیاء", "رنگ", "شغل"],
-      players: new Map(), submissions: new Map(), totalScores: new Map(), timer: null, lang: 'fa'
-    });
-  }
-  return rooms.get(code);
+    if (!rooms.has(code)) {
+        rooms.set(code, {
+            code, hostSocketId: null, status: "lobby", round: 0, letter: "", endsAt: null,
+            durationSec: DEFAULT_DURATION_SEC, categories: DEFAULT_CATEGORIES.slice(),
+            players: new Map(), submissions: new Map(), totalScores: new Map(), timer: null
+        });
+    }
+    return rooms.get(code);
 }
 
 function publicRoomState(room) {
-  return {
-    code: room.code, hostSocketId: room.hostSocketId, status: room.status,
-    round: room.round, letter: room.letter, categories: room.categories,
-    totals: Array.from(room.totalScores.entries()).map(([id, score]) => ({ id, score })),
-    players: Array.from(room.players.entries()).map(([id, p]) => ({ id, name: p.name })),
-    submissionsCount: room.submissions.size, lang: room.lang
-  };
+    return {
+        code: room.code, hostSocketId: room.hostSocketId, status: room.status,
+        round: room.round, letter: room.letter, endsAt: room.endsAt,
+        durationSec: room.durationSec, categories: room.categories,
+        totals: Array.from(room.totalScores.entries()).map(([id, score]) => ({ id, score })),
+        players: Array.from(room.players.entries()).map(([id, p]) => ({ id, name: p.name })),
+        submissionsCount: room.submissions.size,
+    };
 }
 
-function computeRoundScores(submissions, categories, players) {
-  const roundScores = new Map();
-  players.forEach((_, pid) => roundScores.set(pid, 0));
-
-  for (const cat of categories) {
-    const counts = new Map();
-    submissions.forEach(ans => {
-      const norm = normalizeAnswer(ans?.[cat]);
-      if (norm) counts.set(norm, (counts.get(norm) || 0) + 1);
-    });
-
-    players.forEach((_, pid) => {
-      const answers = submissions.get(pid);
-      const norm = normalizeAnswer(answers?.[cat]);
-      if (norm) {
-        const count = counts.get(norm);
-        if (count === 1) {
-          const othersHaveAnswer = Array.from(submissions.entries())
-            .some(([id, a]) => id !== pid && normalizeAnswer(a[cat]));
-          roundScores.set(pid, roundScores.get(pid) + (othersHaveAnswer ? 10 : 20));
-        } else {
-          roundScores.set(pid, roundScores.get(pid) + 5);
+function computeRoundScores(submissions, categories) {
+    const roundScores = new Map();
+    for (const pid of submissions.keys()) roundScores.set(pid, 0);
+    for (const cat of categories) {
+        const counts = new Map();
+        for (const [, answers] of submissions.entries()) {
+            const norm = normalizeAnswer(answers?.[cat]);
+            if (norm) counts.set(norm, (counts.get(norm) || 0) + 1);
         }
-      }
-    });
-  }
-  return roundScores;
+        for (const [pid, answers] of submissions.entries()) {
+            const norm = normalizeAnswer(answers?.[cat]);
+            if (norm) {
+                const pts = (counts.get(norm) >= 2) ? 10 : 20;
+                roundScores.set(pid, (roundScores.get(pid) || 0) + pts);
+            }
+        }
+    }
+    return roundScores;
+}
+
+function startRound(room, durationSec) {
+    room.submissions.clear();
+    room.status = "playing";
+    room.round += 1;
+    room.durationSec = Math.max(30, Number(durationSec || DEFAULT_DURATION_SEC));
+    const letters = ["ا","ب","پ","ت","ث","ج","چ","ح","خ","د","ذ","ر","ز","ژ","س","ش","ص","ض","ط","ظ","ع","غ","ف","ق","ک","گ","ل","م","ن","و","ه","ی"];
+    room.letter = letters[Math.floor(Math.random() * letters.length)];
+    room.endsAt = Date.now() + room.durationSec * 1000;
+
+    if (room.timer) clearTimeout(room.timer);
+    room.timer = setTimeout(() => endRound(room), room.durationSec * 1000);
+
+    io.to(room.code).emit("room:state", publicRoomState(room));
 }
 
 function endRound(room) {
-  if (room.status !== "playing") return;
-  if (room.timer) clearInterval(room.timer);
-  room.status = "lobby";
-  
-  const roundScores = computeRoundScores(room.submissions, room.categories, room.players);
-  roundScores.forEach((pts, pid) => {
-    room.totalScores.set(pid, (room.totalScores.get(pid) || 0) + pts);
-  });
-
-  io.to(room.code).emit("scores:update", {
-    totals: Array.from(room.totalScores.entries()).map(([id, score]) => ({ id, score })),
-    round: Array.from(roundScores.entries()).map(([id, score]) => ({ id, score }))
-  });
-  io.to(room.code).emit("room:state", publicRoomState(room));
+    if (room.status !== "playing") return;
+    room.status = "lobby";
+    room.endsAt = null;
+    const roundScores = computeRoundScores(room.submissions, room.categories);
+    for (const [pid, pts] of roundScores.entries()) {
+        room.totalScores.set(pid, (room.totalScores.get(pid) || 0) + pts);
+    }
+    io.to(room.code).emit("scores:update", {
+        totals: Array.from(room.totalScores.entries()).map(([id, score]) => ({ id, score })),
+        round: Array.from(roundScores.entries()).map(([id, score]) => ({ id, score })),
+    });
+    io.to(room.code).emit("room:state", publicRoomState(room));
 }
 
 io.on("connection", (socket) => {
-  socket.on("room:create", ({ name, lang }, cb) => {
-    const code = makeRoomCode();
-    const room = ensureRoom(code);
-    room.lang = lang || 'fa';
-    room.hostSocketId = socket.id;
-    room.players.set(socket.id, { name: name || "Player" });
-    room.totalScores.set(socket.id, 0);
-    socket.join(code);
-    cb?.({ ok: true, code });
-    io.to(code).emit("room:state", publicRoomState(room));
-  });
-
-  socket.on("room:join", ({ code, name }, cb) => {
-    const room = rooms.get(code?.toUpperCase());
-    if (!room) return cb?.({ ok: false });
-    room.players.set(socket.id, { name: name || "Player" });
-    if (!room.totalScores.has(socket.id)) room.totalScores.set(socket.id, 0);
-    socket.join(room.code);
-    socket.emit("submissions:init", Array.from(room.submissions.entries()).map(([pid, answers]) => ({
-      playerId: pid, name: room.players.get(pid)?.name, answers
-    })));
-    io.to(room.code).emit("room:state", publicRoomState(room));
-    cb?.({ ok: true, code: room.code });
-  });
-
-  socket.on("round:start", ({ code }) => {
-    const room = rooms.get(code);
-    if (room && room.hostSocketId === socket.id && room.status !== "playing") {
-      room.submissions.clear();
-      room.status = "playing";
-      room.round += 1;
-      const alphabets = {
-        fa: "ابپتثجچحخدذرژسشصضطظعغفقکگلمنوهی".split(""),
-        en: "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
-        fr: "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
-      };
-      room.letter = alphabets[room.lang][Math.floor(Math.random() * alphabets[room.lang].length)];
-      
-      let timeLeft = room.durationSec;
-      io.to(room.code).emit("room:state", publicRoomState(room));
-      
-      if (room.timer) clearInterval(room.timer);
-      room.timer = setInterval(() => {
-        timeLeft--;
-        io.to(room.code).emit("timer:tick", timeLeft);
-        if (timeLeft <= 0) {
-          clearInterval(room.timer);
-          endRound(room);
-        }
-      }, 1000);
-    }
-  });
-
-  socket.on("submit", ({ code, answers }, cb) => {
-    const room = rooms.get(code);
-    if (room && room.status === "playing") {
-      room.submissions.set(socket.id, answers);
-      io.to(code).emit("submission:added", {
-        playerId: socket.id, name: room.players.get(socket.id)?.name, answers
-      });
-      cb?.({ ok: true });
-    }
-  });
-
-  socket.on("disconnect", () => {
-    rooms.forEach((room, code) => {
-      if (room.players.has(socket.id)) {
-        room.players.delete(socket.id);
-        if (room.players.size === 0) {
-          if (room.timer) clearInterval(room.timer);
-          rooms.delete(code);
-        } else {
-          if (room.hostSocketId === socket.id) room.hostSocketId = room.players.keys().next().value;
-          io.to(code).emit("room:state", publicRoomState(room));
-        }
-      }
+    socket.on("room:create", ({ name }, cb) => {
+        const code = makeRoomCode();
+        const room = ensureRoom(code);
+        room.hostSocketId = socket.id;
+        room.players.set(socket.id, { name: String(name || "Player").slice(0, 20) });
+        room.totalScores.set(socket.id, 0);
+        socket.join(code);
+        io.to(code).emit("room:state", publicRoomState(room));
+        cb?.({ ok: true, code });
     });
-  });
+
+    socket.on("room:join", ({ code, name }, cb) => {
+        code = String(code || "").toUpperCase().trim();
+        const room = rooms.get(code);
+        if (!room) return cb?.({ ok: false, error: "ROOM_NOT_FOUND" });
+        room.players.set(socket.id, { name: String(name || "Player").slice(0, 20) });
+        if (!room.totalScores.has(socket.id)) room.totalScores.set(socket.id, 0);
+        socket.join(code);
+        io.to(code).emit("room:state", publicRoomState(room));
+        cb?.({ ok: true, code });
+    });
+
+    socket.on("round:start", ({ code, durationSec }, cb) => {
+        const room = rooms.get(code);
+        if (room && room.hostSocketId === socket.id) {
+            startRound(room, durationSec);
+            cb?.({ ok: true });
+        }
+    });
+
+    socket.on("submit", ({ code, answers }, cb) => {
+        const room = rooms.get(code);
+        if (room && room.status === "playing") {
+            const safe = {};
+            for (const cat of room.categories) safe[cat] = String(answers?.[cat] ?? "");
+            room.submissions.set(socket.id, safe);
+            io.to(code).emit("room:state", publicRoomState(room));
+            cb?.({ ok: true });
+        }
+    });
+
+    socket.on("disconnect", () => {
+        for (const [code, room] of rooms.entries()) {
+            if (room.players.has(socket.id)) {
+                room.players.delete(socket.id);
+                if (room.players.size === 0) {
+                    if (room.timer) clearTimeout(room.timer);
+                    rooms.delete(code);
+                } else {
+                    if (room.hostSocketId === socket.id) room.hostSocketId = room.players.keys().next().value;
+                    io.to(code).emit("room:state", publicRoomState(room));
+                }
+            }
+        }
+    });
 });
 
-server.listen(3000, () => console.log("Server ready on port 3000"));
+server.listen(3000, () => console.log(`Server on 3000`));
