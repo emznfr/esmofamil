@@ -1,76 +1,97 @@
 <!doctype html>
-<html lang="fa" id="htmlTag">
+<html lang="fr">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Nom & Prénom — Multiplayer</title>
+  <title>Nom & Prénom</title>
+
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0;background:#f6f7fb;direction:rtl}
-    .wrap{max-width:980px;margin:0 auto;padding:14px}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0;background:#f6f7fb}
+    .wrap{max-width:1000px;margin:0 auto;padding:14px}
     .card{background:#fff;border-radius:16px;padding:14px;box-shadow:0 6px 18px rgba(0,0,0,.06);margin-bottom:12px}
+    h1{margin:0 0 10px;font-size:20px}
     .row{display:flex;gap:10px;flex-wrap:wrap}
     .row>*{flex:1;min-width:160px}
-    input,button,select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #e5e7eb;font-size:14px;box-sizing:border-box}
+    input,button{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #e5e7eb;font-size:14px}
     button{border:none;background:#2563eb;color:#fff;font-weight:800;cursor:pointer}
     button.secondary{background:#eef2ff;color:#1e3a8a}
-    .lang-select { margin-bottom: 10px; background: #fff; font-weight: bold; border: 2px solid #2563eb; }
+    button.danger{background:#ef4444}
+    .muted{color:#6b7280;font-size:12px}
     .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#f1f5ff;color:#1e3a8a;font-weight:900;font-size:12px}
     .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-    .answer{border:1px solid #e5e7eb;border-radius:12px;padding:10px;background:#fbfdff;margin-bottom:8px}
+    @media(max-width:600px){.grid{grid-template-columns:1fr}}
+    .answers{display:flex;flex-direction:column;gap:8px}
+    .answer{border:1px solid #e5e7eb;border-radius:12px;padding:10px;background:#fbfdff}
+    .meta{font-weight:900;margin-bottom:6px}
     table{width:100%;border-collapse:collapse}
-    th,td{border-bottom:1px solid #eef2f7;padding:8px;text-align:center;font-size:14px}
-    [dir="ltr"] th, [dir="ltr"] td { text-align: left; }
+    th,td{border-bottom:1px solid #eef2f7;padding:8px;font-size:14px;text-align:left}
+    .langbar{display:flex;gap:6px}
+    .langbar button{padding:6px 10px;font-size:12px}
   </style>
 </head>
+
 <body>
 <div class="wrap">
 
-  <select id="langSelector" class="lang-select">
-    <option value="fa">فارسی (Persian)</option>
-    <option value="en">English</option>
-    <option value="fr">Français</option>
-  </select>
+  <!-- Language selector -->
+  <div class="card">
+    <div class="langbar">
+      <button class="secondary" onclick="setLang('fr')">🇫🇷 Français</button>
+      <button class="secondary" onclick="setLang('en')">🇬🇧 English</button>
+      <button class="secondary" onclick="setLang('fa')">🇮🇷 فارسی</button>
+    </div>
+  </div>
 
   <div class="card">
-    <h1 id="t_title">اسم و فامیل</h1>
+    <h1 id="title"></h1>
     <div class="row">
-      <input id="name" placeholder="نام شما" />
-      <input id="code" placeholder="کد اتاق" />
+      <input id="name" />
+      <input id="code" />
     </div>
     <div class="row" style="margin-top:8px">
-      <button id="createBtn">ساخت اتاق</button>
-      <button id="joinBtn" class="secondary">ورود به اتاق</button>
+      <button id="createBtn"></button>
+      <button id="joinBtn" class="secondary"></button>
     </div>
-    <div class="muted" id="status">—</div>
+    <div class="muted" id="status" style="margin-top:8px">—</div>
   </div>
 
   <div class="card">
     <div class="row">
-      <button id="startBtn" class="secondary">شروع راند (میزبان)</button>
-      <button id="endBtn" style="background:#ef4444">پایان راند</button>
+      <button id="startBtn" class="secondary"></button>
+      <button id="endBtn" class="danger"></button>
     </div>
     <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-      <span class="pill"><span id="t_room">اتاق</span>: <span id="roomCode">—</span></span>
-      <span class="pill"><span id="t_status">وضعیت</span>: <span id="roomStatus">—</span></span>
-      <span class="pill"><span id="t_letter">حرف</span>: <span id="roomLetter">—</span></span>
+      <span class="pill">Room: <span id="roomCode">—</span></span>
+      <span class="pill">Status: <span id="roomStatus">—</span></span>
+      <span class="pill">Letter: <span id="roomLetter">—</span></span>
+      <span class="pill">Submissions: <span id="subCount">0</span></span>
     </div>
   </div>
 
   <div class="card">
-    <h1 id="t_yourAns">پاسخ‌های شما</h1>
+    <h1 id="answersTitle"></h1>
     <div class="grid" id="formGrid"></div>
-    <button id="submitBtn" style="margin-top:10px">ارسال پاسخ‌ها</button>
+    <div class="row" style="margin-top:10px">
+      <button id="submitBtn"></button>
+    </div>
+    <div class="muted" id="submitMsg"></div>
   </div>
 
   <div class="card">
-    <h1 id="t_allAns">پاسخ‌های همه بازیکنان</h1>
+    <h1 id="allAnswersTitle"></h1>
     <div class="answers" id="answersList"></div>
   </div>
 
   <div class="card">
-    <h1 id="t_scores">جدول امتیازات</h1>
+    <h1 id="scoresTitle"></h1>
     <table>
-      <thead><tr><th id="t_pName">بازیکن</th><th id="t_pTotal">کل</th><th id="t_pRound">راند</th></tr></thead>
+      <thead>
+        <tr>
+          <th id="thPlayer"></th>
+          <th id="thTotal"></th>
+          <th id="thRound"></th>
+        </tr>
+      </thead>
       <tbody id="scoresBody"></tbody>
     </table>
   </div>
@@ -79,58 +100,156 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  const socket = io();
-  let currentLang = 'fa';
-
-  const translations = {
-    fa: {
-      title: "اسم و فامیل", namePl: "نام شما", codePl: "کد اتاق", create: "ساخت اتاق", join: "ورود",
-      start: "شروع راند", end: "پایان راند", room: "اتاق", status: "وضعیت", letter: "حرف",
-      yourAns: "پاسخ‌های شما", allAns: "پاسخ‌های همه", scores: "جدول امتیازات",
-      pName: "بازیکن", pTotal: "کل", pRound: "راند", send: "ارسال پاسخ‌ها", dir: "rtl"
-    },
-    en: {
-      title: "Name & Surname", namePl: "Your Name", codePl: "Room Code", create: "Create Room", join: "Join",
-      start: "Start Round", end: "End Round", room: "Room", status: "Status", letter: "Letter",
-      yourAns: "Your Answers", allAns: "All Submissions", scores: "Leaderboard",
-      pName: "Player", pTotal: "Total", pRound: "Round", send: "Submit Answers", dir: "ltr"
-    },
-    fr: {
-      title: "Nom & Prénom", namePl: "Votre Nom", codePl: "Code Salle", create: "Créer", join: "Rejoindre",
-      start: "Démarrer", end: "Finir", room: "Salle", status: "Statut", letter: "Lettre",
-      yourAns: "Vos Réponses", allAns: "Réponses", scores: "Scores",
-      pName: "Joueur", pTotal: "Total", pRound: "Manche", send: "Envoyer", dir: "ltr"
+/* ================= I18N ================= */
+const I18N = {
+  fr: {
+    title: "Nom & Prénom",
+    name: "Votre prénom",
+    code: "Code de la salle",
+    create: "Créer la salle",
+    join: "Rejoindre",
+    start: "Démarrer la manche",
+    end: "Finir la manche",
+    answers: "Vos réponses",
+    allAnswers: "Réponses de tous les joueurs",
+    submit: "Envoyer mes réponses",
+    scores: "Scores",
+    thPlayer: "Joueur",
+    thTotal: "Total",
+    thRound: "Manche",
+    categories: {
+      name: "Prénom",
+      family: "Nom",
+      city: "Ville",
+      country: "Pays",
+      animal: "Animal",
+      food: "Nourriture",
+      fruit: "Fruit",
+      object: "Objet",
+      color: "Couleur",
+      job: "Métier",
     }
-  };
-
-  function updateLanguage(lang) {
-    currentLang = lang;
-    const t = translations[lang];
-    document.getElementById("htmlTag").dir = t.dir;
-    document.getElementById("t_title").textContent = t.title;
-    document.getElementById("name").placeholder = t.namePl;
-    document.getElementById("code").placeholder = t.codePl;
-    document.getElementById("createBtn").textContent = t.create;
-    document.getElementById("joinBtn").textContent = t.join;
-    document.getElementById("startBtn").textContent = t.start;
-    document.getElementById("endBtn").textContent = t.end;
-    document.getElementById("t_room").textContent = t.room;
-    document.getElementById("t_status").textContent = t.status;
-    document.getElementById("t_letter").textContent = t.letter;
-    document.getElementById("t_yourAns").textContent = t.yourAns;
-    document.getElementById("t_allAns").textContent = t.allAns;
-    document.getElementById("t_scores").textContent = t.scores;
-    document.getElementById("t_pName").textContent = t.pName;
-    document.getElementById("t_pTotal").textContent = t.pTotal;
-    document.getElementById("t_pRound").textContent = t.pRound;
-    document.getElementById("submitBtn").textContent = t.send;
+  },
+  en: {
+    title: "Name Game",
+    name: "Your name",
+    code: "Room code",
+    create: "Create room",
+    join: "Join",
+    start: "Start round",
+    end: "End round",
+    answers: "Your answers",
+    allAnswers: "All players answers",
+    submit: "Submit answers",
+    scores: "Scores",
+    thPlayer: "Player",
+    thTotal: "Total",
+    thRound: "Round",
+    categories: {
+      name: "First name",
+      family: "Last name",
+      city: "City",
+      country: "Country",
+      animal: "Animal",
+      food: "Food",
+      fruit: "Fruit",
+      object: "Object",
+      color: "Color",
+      job: "Job",
+    }
+  },
+  fa: {
+    title: "اسم و فامیل",
+    name: "نام شما",
+    code: "کد اتاق",
+    create: "ساخت اتاق",
+    join: "ورود",
+    start: "شروع دور",
+    end: "پایان دور",
+    answers: "پاسخ‌های شما",
+    allAnswers: "پاسخ همه بازیکنان",
+    submit: "ارسال پاسخ‌ها",
+    scores: "امتیازها",
+    thPlayer: "بازیکن",
+    thTotal: "کل",
+    thRound: "دور",
+    categories: {
+      name: "اسم",
+      family: "فامیل",
+      city: "شهر",
+      country: "کشور",
+      animal: "حیوان",
+      food: "غذا",
+      fruit: "میوه",
+      object: "اشیاء",
+      color: "رنگ",
+      job: "شغل",
+    }
   }
+};
 
-  document.getElementById("langSelector").onchange = (e) => updateLanguage(e.target.value);
-  updateLanguage('fa'); // پیش‌فرض فارسی
+let lang = "fr";
 
-  // ادامه کدهای Socket.io (همان کدهایی که در پیام قبلی برایتان اصلاح کردم)
-  // ... (توابع renderForm، addOrUpdateAnswerCard و غیره را اینجا قرار دهید)
+/* ================= SOCKET ================= */
+const socket = io();
+const el = Object.fromEntries(
+  ["title","name","code","createBtn","joinBtn","status","startBtn","endBtn",
+   "roomCode","roomStatus","roomLetter","subCount",
+   "answersTitle","formGrid","submitBtn","submitMsg",
+   "allAnswersTitle","answersList","scoresTitle","scoresBody",
+   "thPlayer","thTotal","thRound"
+  ].map(id => [id, document.getElementById(id)])
+);
+
+let roomState = null;
+let currentCode = null;
+
+function setLang(l){
+  lang = l;
+  const t = I18N[lang];
+
+  el.title.textContent = t.title;
+  el.name.placeholder = t.name;
+  el.code.placeholder = t.code;
+  el.createBtn.textContent = t.create;
+  el.joinBtn.textContent = t.join;
+  el.startBtn.textContent = t.start;
+  el.endBtn.textContent = t.end;
+  el.answersTitle.textContent = t.answers;
+  el.allAnswersTitle.textContent = t.allAnswers;
+  el.submitBtn.textContent = t.submit;
+  el.scoresTitle.textContent = t.scores;
+  el.thPlayer.textContent = t.thPlayer;
+  el.thTotal.textContent = t.thTotal;
+  el.thRound.textContent = t.thRound;
+
+  if(roomState?.categories) renderForm(roomState.categories);
+}
+
+function renderForm(categories){
+  el.formGrid.innerHTML = "";
+  categories.forEach(cat=>{
+    const label = I18N[lang].categories[cat] || cat;
+    el.formGrid.insertAdjacentHTML("beforeend", `
+      <div>
+        <div class="muted">${label}</div>
+        <input id="cat_${cat}" placeholder="${label}..." />
+      </div>
+    `);
+  });
+}
+
+socket.on("room:state", (state)=>{
+  roomState = state;
+  currentCode = state.code;
+  el.roomCode.textContent = state.code || "—";
+  el.roomStatus.textContent = state.status || "—";
+  el.roomLetter.textContent = state.letter || "—";
+  el.subCount.textContent = state.submissionsCount || 0;
+  if(state.categories) renderForm(state.categories);
+});
+
+setLang("fr");
 </script>
 </body>
 </html>
