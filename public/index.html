@@ -1,255 +1,182 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fa" id="mainHtml">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Nom & Prénom</title>
-
+  <title>بازی اسم فامیل آنلاین</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0;background:#f6f7fb}
-    .wrap{max-width:1000px;margin:0 auto;padding:14px}
-    .card{background:#fff;border-radius:16px;padding:14px;box-shadow:0 6px 18px rgba(0,0,0,.06);margin-bottom:12px}
-    h1{margin:0 0 10px;font-size:20px}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
-    .row>*{flex:1;min-width:160px}
-    input,button{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #e5e7eb;font-size:14px}
-    button{border:none;background:#2563eb;color:#fff;font-weight:800;cursor:pointer}
-    button.secondary{background:#eef2ff;color:#1e3a8a}
-    button.danger{background:#ef4444}
-    .muted{color:#6b7280;font-size:12px}
-    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#f1f5ff;color:#1e3a8a;font-weight:900;font-size:12px}
-    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-    @media(max-width:600px){.grid{grid-template-columns:1fr}}
-    .answers{display:flex;flex-direction:column;gap:8px}
-    .answer{border:1px solid #e5e7eb;border-radius:12px;padding:10px;background:#fbfdff}
-    .meta{font-weight:900;margin-bottom:6px}
-    table{width:100%;border-collapse:collapse}
-    th,td{border-bottom:1px solid #eef2f7;padding:8px;font-size:14px;text-align:left}
-    .langbar{display:flex;gap:6px}
-    .langbar button{padding:6px 10px;font-size:12px}
+    :root { --primary: #4f46e5; --secondary: #ecf0f9; --accent: #10b981; --danger: #ef4444; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f3f4f6; color: #1f2937; transition: all 0.3s; }
+    [dir="rtl"] { direction: rtl; } [dir="ltr"] { direction: ltr; }
+    .wrap { max-width: 800px; margin: 0 auto; padding: 20px; }
+    .card { background: #fff; border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e5e7eb; }
+    h1 { margin-top: 0; font-size: 24px; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+    .lang-bar { display: flex; justify-content: flex-end; margin-bottom: 15px; }
+    select { padding: 8px 15px; border-radius: 10px; border: 2px solid var(--primary); cursor: pointer; outline: none; font-weight: bold; }
+    .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+    input { flex: 1; padding: 12px 15px; border-radius: 12px; border: 1px solid #d1d5db; outline: none; transition: 0.2s; }
+    input:focus { border-color: var(--primary); ring: 2px var(--primary); }
+    button { padding: 12px 20px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    button:active { transform: scale(0.95); }
+    .btn-primary { background: var(--primary); color: #fff; width: 100%; }
+    .btn-secondary { background: var(--secondary); color: var(--primary); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .pill-box { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+    .pill { background: #eef2ff; color: var(--primary); padding: 5px 15px; border-radius: 20px; font-size: 13px; font-weight: bold; border: 1px solid #c7d2fe; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
+    .answer-card { background: #f9fafb; border: 1px solid #e5e7eb; padding: 15px; border-radius: 15px; margin-bottom: 10px; }
+    .answer-card b { color: var(--primary); }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 12px; text-align: center; border-bottom: 1px solid #f3f4f6; }
+    th { color: #6b7280; font-size: 14px; }
+    .status-msg { font-size: 13px; color: #6b7280; margin-top: 10px; text-align: center; }
   </style>
 </head>
-
-<body>
+<body dir="rtl">
 <div class="wrap">
+  <div class="lang-bar">
+    <select id="langSelector">
+      <option value="fa">Persian | فارسی</option>
+      <option value="fr">French | Français</option>
+      <option value="en">English | انگلیسی</option>
+    </select>
+  </div>
 
-  <!-- Language selector -->
   <div class="card">
-    <div class="langbar">
-      <button class="secondary" onclick="setLang('fr')">🇫🇷 Français</button>
-      <button class="secondary" onclick="setLang('en')">🇬🇧 English</button>
-      <button class="secondary" onclick="setLang('fa')">🇮🇷 فارسی</button>
+    <h1 id="t_title">📝 اسم فامیل آنلاین</h1>
+    <div class="input-group">
+      <input id="name" placeholder="نام شما..." />
+      <input id="code" placeholder="کد اتاق..." />
+    </div>
+    <div class="input-group">
+      <button id="createBtn" class="btn-primary">✨ ساخت اتاق جدید</button>
+      <button id="joinBtn" class="btn-secondary">🔗 ورود به اتاق</button>
+    </div>
+    <div id="status" class="status-msg">آماده بازی</div>
+  </div>
+
+  <div class="card">
+    <div class="input-group">
+      <button id="startBtn" class="btn-secondary">▶️ شروع راند (میزبان)</button>
+    </div>
+    <div class="pill-box">
+      <div class="pill">🆔 <span id="roomCode">—</span></div>
+      <div class="pill">🏁 <span id="roomStatus">—</span></div>
+      <div class="pill">🔠 <span id="roomLetter">—</span></div>
     </div>
   </div>
 
   <div class="card">
-    <h1 id="title"></h1>
-    <div class="row">
-      <input id="name" />
-      <input id="code" />
-    </div>
-    <div class="row" style="margin-top:8px">
-      <button id="createBtn"></button>
-      <button id="joinBtn" class="secondary"></button>
-    </div>
-    <div class="muted" id="status" style="margin-top:8px">—</div>
-  </div>
-
-  <div class="card">
-    <div class="row">
-      <button id="startBtn" class="secondary"></button>
-      <button id="endBtn" class="danger"></button>
-    </div>
-    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-      <span class="pill">Room: <span id="roomCode">—</span></span>
-      <span class="pill">Status: <span id="roomStatus">—</span></span>
-      <span class="pill">Letter: <span id="roomLetter">—</span></span>
-      <span class="pill">Submissions: <span id="subCount">0</span></span>
-    </div>
-  </div>
-
-  <div class="card">
-    <h1 id="answersTitle"></h1>
+    <h1 id="t_answers">🖊️ پاسخ‌های شما</h1>
     <div class="grid" id="formGrid"></div>
-    <div class="row" style="margin-top:10px">
-      <button id="submitBtn"></button>
-    </div>
-    <div class="muted" id="submitMsg"></div>
+    <button id="submitBtn" class="btn-primary" style="margin-top:20px">📤 ارسال نهایی پاسخ‌ها</button>
   </div>
 
   <div class="card">
-    <h1 id="allAnswersTitle"></h1>
-    <div class="answers" id="answersList"></div>
+    <h1 id="t_others">👥 وضعیت بقیه بازیکنان</h1>
+    <div id="answersList"></div>
   </div>
 
   <div class="card">
-    <h1 id="scoresTitle"></h1>
+    <h1 id="t_scores">🏆 جدول امتیازات</h1>
     <table>
       <thead>
-        <tr>
-          <th id="thPlayer"></th>
-          <th id="thTotal"></th>
-          <th id="thRound"></th>
-        </tr>
+        <tr><th id="t_hPlayer">بازیکن</th><th id="t_hTotal">امتیاز کل</th><th id="t_hRound">راند آخر</th></tr>
       </thead>
       <tbody id="scoresBody"></tbody>
     </table>
   </div>
-
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-/* ================= I18N ================= */
-const I18N = {
-  fr: {
-    title: "Nom & Prénom",
-    name: "Votre prénom",
-    code: "Code de la salle",
-    create: "Créer la salle",
-    join: "Rejoindre",
-    start: "Démarrer la manche",
-    end: "Finir la manche",
-    answers: "Vos réponses",
-    allAnswers: "Réponses de tous les joueurs",
-    submit: "Envoyer mes réponses",
-    scores: "Scores",
-    thPlayer: "Joueur",
-    thTotal: "Total",
-    thRound: "Manche",
-    categories: {
-      name: "Prénom",
-      family: "Nom",
-      city: "Ville",
-      country: "Pays",
-      animal: "Animal",
-      food: "Nourriture",
-      fruit: "Fruit",
-      object: "Objet",
-      color: "Couleur",
-      job: "Métier",
-    }
-  },
-  en: {
-    title: "Name Game",
-    name: "Your name",
-    code: "Room code",
-    create: "Create room",
-    join: "Join",
-    start: "Start round",
-    end: "End round",
-    answers: "Your answers",
-    allAnswers: "All players answers",
-    submit: "Submit answers",
-    scores: "Scores",
-    thPlayer: "Player",
-    thTotal: "Total",
-    thRound: "Round",
-    categories: {
-      name: "First name",
-      family: "Last name",
-      city: "City",
-      country: "Country",
-      animal: "Animal",
-      food: "Food",
-      fruit: "Fruit",
-      object: "Object",
-      color: "Color",
-      job: "Job",
-    }
-  },
-  fa: {
-    title: "اسم و فامیل",
-    name: "نام شما",
-    code: "کد اتاق",
-    create: "ساخت اتاق",
-    join: "ورود",
-    start: "شروع دور",
-    end: "پایان دور",
-    answers: "پاسخ‌های شما",
-    allAnswers: "پاسخ همه بازیکنان",
-    submit: "ارسال پاسخ‌ها",
-    scores: "امتیازها",
-    thPlayer: "بازیکن",
-    thTotal: "کل",
-    thRound: "دور",
-    categories: {
-      name: "اسم",
-      family: "فامیل",
-      city: "شهر",
-      country: "کشور",
-      animal: "حیوان",
-      food: "غذا",
-      fruit: "میوه",
-      object: "اشیاء",
-      color: "رنگ",
-      job: "شغل",
-    }
-  }
-};
+  const socket = io();
+  let currentCode = null;
+  let roomState = null;
 
-let lang = "fr";
+  const i18n = {
+    fa: { title: "📝 اسم فامیل آنلاین", answers: "🖊️ پاسخ‌های شما", others: "👥 وضعیت بقیه", scores: "🏆 جدول امتیازات", hPlayer: "بازیکن", hTotal: "کل", hRound: "راند", create: "✨ ساخت اتاق", join: "🔗 ورود", start: "▶️ شروع راند", dir: "rtl" },
+    fr: { title: "📝 Petit Bac", answers: "🖊️ Vos Réponses", others: "👥 Autres joueurs", scores: "🏆 Classement", hPlayer: "Joueur", hTotal: "Total", hRound: "Manche", create: "✨ Créer", join: "🔗 Rejoindre", start: "▶️ Démarrer", dir: "ltr" },
+    en: { title: "📝 Scattergories", answers: "🖊️ Your Answers", others: "👥 Others", scores: "🏆 Leaderboard", hPlayer: "Player", hTotal: "Total", hRound: "Round", create: "✨ Create", join: "🔗 Join", start: "▶️ Start", dir: "ltr" }
+  };
 
-/* ================= SOCKET ================= */
-const socket = io();
-const el = Object.fromEntries(
-  ["title","name","code","createBtn","joinBtn","status","startBtn","endBtn",
-   "roomCode","roomStatus","roomLetter","subCount",
-   "answersTitle","formGrid","submitBtn","submitMsg",
-   "allAnswersTitle","answersList","scoresTitle","scoresBody",
-   "thPlayer","thTotal","thRound"
-  ].map(id => [id, document.getElementById(id)])
-);
-
-let roomState = null;
-let currentCode = null;
-
-function setLang(l){
-  lang = l;
-  const t = I18N[lang];
-
-  el.title.textContent = t.title;
-  el.name.placeholder = t.name;
-  el.code.placeholder = t.code;
-  el.createBtn.textContent = t.create;
-  el.joinBtn.textContent = t.join;
-  el.startBtn.textContent = t.start;
-  el.endBtn.textContent = t.end;
-  el.answersTitle.textContent = t.answers;
-  el.allAnswersTitle.textContent = t.allAnswers;
-  el.submitBtn.textContent = t.submit;
-  el.scoresTitle.textContent = t.scores;
-  el.thPlayer.textContent = t.thPlayer;
-  el.thTotal.textContent = t.thTotal;
-  el.thRound.textContent = t.thRound;
-
-  if(roomState?.categories) renderForm(roomState.categories);
-}
-
-function renderForm(categories){
-  el.formGrid.innerHTML = "";
-  categories.forEach(cat=>{
-    const label = I18N[lang].categories[cat] || cat;
-    el.formGrid.insertAdjacentHTML("beforeend", `
-      <div>
-        <div class="muted">${label}</div>
-        <input id="cat_${cat}" placeholder="${label}..." />
-      </div>
-    `);
+  document.getElementById('langSelector').addEventListener('change', (e) => {
+    const lang = e.target.value;
+    const t = i18n[lang];
+    document.getElementById('mainHtml').dir = t.dir;
+    document.getElementById('t_title').innerText = t.title;
+    document.getElementById('t_answers').innerText = t.answers;
+    document.getElementById('t_others').innerText = t.others;
+    document.getElementById('t_scores').innerText = t.scores;
+    document.getElementById('t_hPlayer').innerText = t.hPlayer;
+    document.getElementById('t_hTotal').innerText = t.hTotal;
+    document.getElementById('t_hRound').innerText = t.hRound;
+    document.getElementById('createBtn').innerText = t.create;
+    document.getElementById('joinBtn').innerText = t.join;
+    document.getElementById('startBtn').innerText = t.start;
   });
-}
 
-socket.on("room:state", (state)=>{
-  roomState = state;
-  currentCode = state.code;
-  el.roomCode.textContent = state.code || "—";
-  el.roomStatus.textContent = state.status || "—";
-  el.roomLetter.textContent = state.letter || "—";
-  el.subCount.textContent = state.submissionsCount || 0;
-  if(state.categories) renderForm(state.categories);
-});
+  function renderForm(categories) {
+    const grid = document.getElementById("formGrid");
+    if (grid.children.length > 0) return;
+    categories.forEach(cat => {
+      grid.insertAdjacentHTML("beforeend", `<div><small>${cat}</small><input class="ans-input" data-cat="${cat}" placeholder="..."></div>`);
+    });
+  }
 
-setLang("fr");
+  function addAnswerCard(entry) {
+    let el = document.getElementById("ans_" + entry.playerId);
+    const content = `<b>${entry.name}:</b> <small>${Object.values(entry.answers).join(" - ")}</small>`;
+    if (el) el.innerHTML = content;
+    else document.getElementById("answersList").insertAdjacentHTML("beforeend", `<div class="answer-card" id="ans_${entry.playerId}">${content}</div>`);
+  }
+
+  socket.on("room:state", (state) => {
+    roomState = state;
+    currentCode = state.code;
+    document.getElementById("roomCode").innerText = state.code;
+    document.getElementById("roomStatus").innerText = state.status;
+    document.getElementById("roomLetter").innerText = state.letter || "?";
+    if (state.status === "playing") renderForm(state.categories);
+    else document.getElementById("formGrid").innerHTML = "";
+    
+    const idToName = new Map(state.players.map(p => [p.id, p.name]));
+    document.getElementById("scoresBody").innerHTML = state.totals.map(t => `<tr><td>${idToName.get(t.id)}</td><td>${t.score}</td><td>—</td></tr>`).join("");
+  });
+
+  socket.on("submission:added", addAnswerCard);
+  socket.on("submissions:init", list => {
+    document.getElementById("answersList").innerHTML = "";
+    list.forEach(addAnswerCard);
+  });
+
+  socket.on("scores:update", ({ totals, round }) => {
+    const idToName = new Map(roomState.players.map(p => [p.id, p.name]));
+    const roundMap = new Map(round.map(x => [x.id, x.score]));
+    document.getElementById("scoresBody").innerHTML = totals.map(t => `<tr><td>${idToName.get(t.id)}</td><td>${t.score}</td><td>${roundMap.get(t.id) || 0}</td></tr>`).join("");
+  });
+
+  document.getElementById("createBtn").onclick = () => {
+    socket.emit("room:create", { name: document.getElementById("name").value, lang: document.getElementById("langSelector").value }, res => {
+      if (res.ok) document.getElementById("status").innerText = "اتاق ساخته شد";
+    });
+  };
+
+  document.getElementById("joinBtn").onclick = () => {
+    socket.emit("room:join", { code: document.getElementById("code").value, name: document.getElementById("name").value }, res => {
+      if (!res.ok) alert("اتاق پیدا نشد");
+    });
+  };
+
+  document.getElementById("startBtn").onclick = () => socket.emit("round:start", { code: currentCode });
+
+  document.getElementById("submitBtn").onclick = () => {
+    const answers = {};
+    document.querySelectorAll(".ans-input").forEach(i => answers[i.dataset.cat] = i.value);
+    socket.emit("submit", { code: currentCode, answers }, () => {
+      document.getElementById("submitBtn").innerText = "✅ فرستاده شد";
+    });
+  };
 </script>
 </body>
 </html>
