@@ -1,193 +1,282 @@
 <!doctype html>
-<html lang="fa" id="mainHtml">
+<html lang="fa" dir="rtl">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>اسم فامیل آنلاین</title>
-  <style>
-    :root { --primary: #4f46e5; --secondary: #ecf0f9; --accent: #10b981; --danger: #ef4444; --dark: #1e293b; }
-    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background: #f8fafc; color: #334155; transition: 0.3s; }
-    [dir="rtl"] { direction: rtl; } [dir="ltr"] { direction: ltr; }
-    .wrap { max-width: 900px; margin: 0 auto; padding: 20px; }
-    .card { background: #fff; border-radius: 24px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid #f1f5f9; }
-    .lang-bar { display: flex; justify-content: flex-end; margin-bottom: 10px; }
-    select { padding: 8px 12px; border-radius: 12px; border: 2px solid var(--primary); outline: none; font-weight: 600; cursor: pointer; }
-    .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
-    input { flex: 1; padding: 14px; border-radius: 16px; border: 1px solid #e2e8f0; outline: none; font-size: 15px; transition: 0.2s; }
-    input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-    button { padding: 14px 24px; border-radius: 16px; border: none; font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; }
-    button:hover { opacity: 0.9; transform: translateY(-1px); }
-    button:active { transform: translateY(0); }
-    .btn-p { background: var(--primary); color: #fff; width: 100%; }
-    .btn-s { background: var(--secondary); color: var(--primary); width: 100%; }
-    .pill-box { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
-    .pill { background: #fff; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 99px; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-    .timer-pill { background: var(--dark); color: #fff; border: none; min-width: 100px; justify-content: center; transition: 0.3s; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-    .field label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; color: #64748b; }
-    .answer-card { background: #f8fafc; border: 1px dotted #cbd5e1; padding: 12px; border-radius: 12px; margin-bottom: 8px; font-size: 14px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 12px; text-align: center; border-bottom: 1px solid #f1f5f9; }
-    th { font-size: 13px; color: #94a3b8; text-transform: uppercase; }
-  </style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>اسم فامیل پرو 🎮</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --secondary: #6366f1;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --danger: #ef4444;
+            --success: #22c55e;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            color: #1e293b;
+        }
+        .wrap { max-width: 800px; margin: 0 auto; padding: 20px; }
+        
+        /* Glassmorphism Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+        }
+
+        .header { text-align: center; margin-bottom: 30px; }
+        h1 { font-size: 28px; margin: 0; background: linear-gradient(to right, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .input-group { display: grid; gap: 12px; margin-bottom: 20px; grid-template-columns: 1fr 1fr; }
+        @media (max-width: 500px) { .input-group { grid-template-columns: 1fr; } }
+
+        input, select {
+            padding: 14px;
+            border-radius: 14px;
+            border: 2px solid #e2e8f0;
+            font-size: 15px;
+            transition: 0.3s;
+            outline: none;
+        }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
+
+        button {
+            padding: 14px 24px;
+            border-radius: 14px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 15px;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--secondary); transform: translateY(-2px); }
+        .btn-primary:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .btn-danger { background: #fee2e2; color: var(--danger); }
+
+        /* Timer UI */
+        .timer-container {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        .timer-bar {
+            height: 100%;
+            width: 100%;
+            background: var(--primary);
+            transition: width 1s linear, background-color 0.3s;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .status-lobby { background: #f1f5ff; color: var(--primary); }
+        .status-playing { background: #fef2f2; color: var(--danger); }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        .field-card {
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+        }
+        .field-card label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 8px; color: #64748b; }
+        .field-card input { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; }
+
+        .score-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+        .score-item:last-child { border-bottom: none; }
+        
+        .floating-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .pill { background: #fff; padding: 8px 16px; border-radius: 99px; font-size: 13px; font-weight: 700; border: 1px solid #e2e8f0; }
+    </style>
 </head>
-<body dir="rtl">
+<body>
+
 <div class="wrap">
-  <div class="lang-bar">
-    <select id="langSelector">
-      <option value="fa">فارسی</option>
-      <option value="fr">Français</option>
-      <option value="en">English</option>
-    </select>
-  </div>
-
-  <div class="card">
-    <h1 id="t_title">📝 اسم و فامیل آنلاین</h1>
-    <div class="input-group">
-      <input id="name" placeholder="نام شما..." />
-      <input id="code" placeholder="کد اتاق..." />
+    <div class="header">
+        <h1 id="t-title">اسم و فامیل پرو</h1>
+        <p id="t-sub" style="color: #64748b;">تجربه بازی مدرن و سریع</p>
     </div>
-    <div class="input-group">
-      <button id="createBtn" class="btn-p">ایجاد اتاق</button>
-      <button id="joinBtn" class="btn-s">ورود به اتاق</button>
+
+    <div class="card" id="authBox">
+        <div class="input-group">
+            <input id="nameInput" placeholder="نام نمایشی" />
+            <select id="langSelect">
+                <option value="fa">فارسی</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <button class="btn-primary" id="createBtn">ساخت اتاق جدید</button>
+            <input id="codeInput" placeholder="کد اتاق ۵ رقمی" style="text-transform: uppercase;" />
+        </div>
+        <button class="btn-primary" id="joinBtn" style="width: 100%; margin-top: 10px;">ورود به اتاق</button>
     </div>
-    <div id="status" style="text-align: center; font-size: 12px; color: #94a3b8;">آماده اتصال</div>
-  </div>
 
-  <div class="card">
-    <div class="pill-box">
-      <div class="pill timer-pill">⏱️ <span id="timerText">120</span>s</div>
-      <div class="pill">🏠 <span id="roomCode">—</span></div>
-      <div class="pill">✨ <span id="roomStatus">Lobby</span></div>
-      <div class="pill">🔠 <span id="roomLetter">—</span></div>
+    <div class="card" id="gameInfo" style="display: none;">
+        <div class="floating-info">
+            <div id="roomPill" class="pill">اتاق: —</div>
+            <div id="statusBadge" class="status-badge status-lobby">Lobby</div>
+        </div>
+        
+        <div id="hostControls" style="display: none;">
+            <div class="input-group">
+                <input id="durationInput" type="number" value="120" placeholder="زمان" />
+                <button class="btn-primary" id="startBtn">شروع راند</button>
+            </div>
+        </div>
+
+        <div id="scoreboard">
+            <h3 id="t-scores" style="margin: 15px 0 10px;">امتیازات برتر</h3>
+            <div id="scoresList"></div>
+        </div>
     </div>
-    <button id="startBtn" class="btn-s" style="margin-top: 10px;">▶️ شروع بازی (میزبان)</button>
-  </div>
 
-  <div class="card">
-    <h2 id="t_answers" style="font-size: 18px; margin-top:0">🖊️ پاسخ‌های شما</h2>
-    <div class="grid" id="formGrid"></div>
-    <button id="submitBtn" class="btn-p" style="margin-top: 20px;">📤 ارسال پاسخ‌ها</button>
-  </div>
+    <div class="card" id="playArea" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-size: 24px; font-weight: 900;">حرف: <span id="letterBox" style="color: var(--primary);">؟</span></div>
+            <div id="timerText" style="font-weight: 800; font-size: 20px;">120s</div>
+        </div>
+        
+        <div class="timer-container">
+            <div id="timerBar" class="timer-bar"></div>
+        </div>
 
-  <div class="card">
-    <h2 id="t_others" style="font-size: 18px; margin-top:0">👥 پاسخ‌های بقیه</h2>
-    <div id="answersList"></div>
-  </div>
-
-  <div class="card">
-    <h2 id="t_scores" style="font-size: 18px; margin-top:0">🏆 امتیازات</h2>
-    <table>
-      <thead>
-        <tr><th id="t_hPlayer">بازیکن</th><th id="t_hTotal">کل</th><th id="t_hRound">راند</th></tr>
-      </thead>
-      <tbody id="scoresBody"></tbody>
-    </table>
-  </div>
+        <div id="inputsGrid" class="grid" style="margin-top: 20px;"></div>
+        
+        <button class="btn-primary" id="submitBtn" style="width: 100%; margin-top: 20px; padding: 18px;">ارسال نهایی پاسخ‌ها</button>
+    </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  const socket = io();
-  let currentCode = null;
-  let roomState = null;
+    const socket = io();
+    const CATEGORIES = ["name","family","city","country","animal","food","fruit","object","color","job"];
+    const i18n = {
+        fa: { name: "اسم", family: "فامیل", city: "شهر", country: "کشور", animal: "حیوان", food: "غذا", fruit: "میوه", object: "اشیاء", color: "رنگ", job: "شغل" },
+        en: { name: "Name", family: "Family", city: "City", country: "Country", animal: "Animal", food: "Food", fruit: "Fruit", object: "Object", color: "Color", job: "Job" }
+    };
 
-  const i18n = {
-    fa: { title: "📝 اسم و فامیل آنلاین", answers: "🖊️ پاسخ‌های شما", others: "👥 پاسخ‌های بقیه", scores: "🏆 امتیازات", hPlayer: "بازیکن", hTotal: "کل", hRound: "راند", create: "ایجاد اتاق", join: "ورود به اتاق", start: "▶️ شروع بازی", send: "📤 ارسال پاسخ‌ها", dir: "rtl" },
-    fr: { title: "📝 Petit Bac", answers: "🖊️ Vos Réponses", others: "👥 Autres Joueurs", scores: "🏆 Classement", hPlayer: "Joueur", hTotal: "Total", hRound: "Manche", create: "Créer Salle", join: "Rejoindre", start: "▶️ Démarrer", send: "📤 Envoyer", dir: "ltr" },
-    en: { title: "📝 Scattergories", answers: "🖊️ Your Answers", others: "👥 Others' Answers", scores: "🏆 Leaderboard", hPlayer: "Player", hTotal: "Total", hRound: "Round", create: "Create Room", join: "Join Room", start: "▶️ Start Game", send: "📤 Submit Answers", dir: "ltr" }
-  };
+    let currentCode = null;
+    let roomState = null;
+    let timerInterval = null;
 
-  document.getElementById('langSelector').addEventListener('change', (e) => {
-    const lang = e.target.value;
-    const t = i18n[lang];
-    document.getElementById('mainHtml').dir = t.dir;
-    document.getElementById('t_title').innerText = t.title;
-    document.getElementById('t_answers').innerText = t.answers;
-    document.getElementById('t_others').innerText = t.others;
-    document.getElementById('t_scores').innerText = t.scores;
-    document.getElementById('t_hPlayer').innerText = t.hPlayer;
-    document.getElementById('t_hTotal').innerText = t.hTotal;
-    document.getElementById('t_hRound').innerText = t.hRound;
-    document.getElementById('createBtn').innerText = t.create;
-    document.getElementById('joinBtn').innerText = t.join;
-    document.getElementById('startBtn').innerText = t.start;
-    document.getElementById('submitBtn').innerText = t.send;
-  });
+    const $ = id => document.getElementById(id);
 
-  function addAnswerCard(entry) {
-    let el = document.getElementById("ans_" + entry.playerId);
-    const content = `<b>${entry.name}:</b> ${Object.values(entry.answers).filter(v => v).join(" - ") || "..."}`;
-    if (el) el.innerHTML = content;
-    else document.getElementById("answersList").insertAdjacentHTML("beforeend", `<div class="answer-card" id="ans_${entry.playerId}">${content}</div>`);
-  }
+    // Actions
+    $('createBtn').onclick = () => {
+        const name = $('nameInput').value || "Player";
+        socket.emit("room:create", { name }, res => { if(res.ok) currentCode = res.code; });
+    };
 
-  socket.on("timer:tick", (timeLeft) => {
-    const t = document.getElementById("timerText");
-    const p = t.parentElement;
-    t.innerText = timeLeft;
-    if (timeLeft <= 10) { p.style.background = "var(--danger)"; p.style.transform = "scale(1.05)"; }
-    else { p.style.background = "var(--dark)"; p.style.transform = "scale(1)"; }
-  });
+    $('joinBtn').onclick = () => {
+        const name = $('nameInput').value || "Player";
+        const code = $('codeInput').value.toUpperCase();
+        socket.emit("room:join", { code, name }, res => { if(res.ok) currentCode = res.code; else alert("اتاق یافت نشد"); });
+    };
 
-  socket.on("room:state", (state) => {
-    roomState = state;
-    currentCode = state.code;
-    document.getElementById("roomCode").innerText = state.code;
-    document.getElementById("roomStatus").innerText = state.status.toUpperCase();
-    document.getElementById("roomLetter").innerText = state.letter || "—";
-    
-    if (state.status === "playing") {
-      const grid = document.getElementById("formGrid");
-      if (grid.children.length === 0) {
-        state.categories.forEach(cat => {
-          grid.insertAdjacentHTML("beforeend", `<div class="field"><label>${cat}</label><input class="ans-input" data-cat="${cat}"></div>`);
+    $('startBtn').onclick = () => {
+        socket.emit("round:start", { code: currentCode, durationSec: $('durationInput').value });
+    };
+
+    $('submitBtn').onclick = () => {
+        const answers = {};
+        document.querySelectorAll('.ans-inp').forEach(i => answers[i.dataset.cat] = i.value);
+        socket.emit("submit", { code: currentCode, answers }, () => {
+            $('submitBtn').disabled = true;
+            $('submitBtn').innerText = "ارسال شد، منتظر بقیه...";
         });
-      }
-      document.getElementById("submitBtn").disabled = false;
-    } else {
-      document.getElementById("formGrid").innerHTML = "";
-      document.getElementById("timerText").innerText = "120";
-    }
-    
-    const idToName = new Map(state.players.map(p => [p.id, p.name]));
-    document.getElementById("scoresBody").innerHTML = state.totals.map(t => `<tr><td>${idToName.get(t.id)}</td><td>${t.score}</td><td>—</td></tr>`).join("");
-  });
+    };
 
-  socket.on("submission:added", addAnswerCard);
-  socket.on("submissions:init", list => {
-    document.getElementById("answersList").innerHTML = "";
-    list.forEach(addAnswerCard);
-  });
+    socket.on("room:state", state => {
+        roomState = state;
+        currentCode = state.code;
+        
+        $('authBox').style.display = 'none';
+        $('gameInfo').style.display = 'block';
+        $('roomPill').innerText = "اتاق: " + state.code;
+        
+        // Host UI
+        const isHost = state.hostSocketId === socket.id;
+        $('hostControls').style.display = isHost ? 'block' : 'none';
 
-  socket.on("scores:update", ({ totals, round }) => {
-    const idToName = new Map(roomState.players.map(p => [p.id, p.name]));
-    const roundMap = new Map(round.map(x => [x.id, x.score]));
-    document.getElementById("scoresBody").innerHTML = totals.map(t => `<tr><td>${idToName.get(t.id)}</td><td>${t.score}</td><td>${roundMap.get(t.id) || 0}</td></tr>`).join("");
-  });
+        // Play UI
+        const isPlaying = state.status === 'playing';
+        $('playArea').style.display = isPlaying ? 'block' : 'none';
+        $('statusBadge').innerText = isPlaying ? "در حال بازی" : "لابی";
+        $('statusBadge').className = `status-badge ${isPlaying ? 'status-playing' : 'status-lobby'}`;
 
-  document.getElementById("createBtn").onclick = () => {
-    const name = document.getElementById("name").value;
-    const lang = document.getElementById("langSelector").value;
-    socket.emit("room:create", { name, lang }, res => { if (res.ok) document.getElementById("status").innerText = "Connected"; });
-  };
+        if(isPlaying) {
+            $('letterBox').innerText = state.letter;
+            renderInputs(state.categories);
+            handleTimer(state.endsAt, state.durationSec);
+            $('submitBtn').disabled = false;
+            $('submitBtn').innerText = "ارسال نهایی پاسخ‌ها";
+        } else {
+            clearInterval(timerInterval);
+        }
 
-  document.getElementById("joinBtn").onclick = () => {
-    const code = document.getElementById("code").value;
-    const name = document.getElementById("name").value;
-    socket.emit("room:join", { code, name }, res => { if (!res.ok) alert("Room not found"); });
-  };
-
-  document.getElementById("startBtn").onclick = () => socket.emit("round:start", { code: currentCode });
-
-  document.getElementById("submitBtn").onclick = () => {
-    const answers = {};
-    document.querySelectorAll(".ans-input").forEach(i => answers[i.dataset.cat] = i.value);
-    socket.emit("submit", { code: currentCode, answers }, () => {
-      document.getElementById("submitBtn").innerText = "✅";
-      document.getElementById("submitBtn").disabled = true;
+        renderScores(state.totals, state.players);
     });
-  };
+
+    function renderInputs(cats) {
+        const grid = $('inputsGrid');
+        if (grid.children.length > 0) return;
+        const lang = $('langSelect').value;
+        grid.innerHTML = cats.map(cat => `
+            <div class="field-card">
+                <label>${i18n[lang][cat] || cat}</label>
+                <input class="ans-inp" data-cat="${cat}" placeholder="..." />
+            </div>
+        `).join('');
+    }
+
+    function handleTimer(endsAt, totalSec) {
+        clearInterval(timerInterval);
+        const bar = $('timerBar');
+        const text = $('timerText');
+
+        timerInterval = setInterval(() => {
+            const now = Date.now();
+            const left = Math.max(0, Math.floor((endsAt - now) / 1000));
+            const percent = (left / totalSec) * 100;
+            
+            bar.style.width = percent + "%";
+            text.innerText = left + "s";
+
+            if (percent < 20) bar.style.backgroundColor = 'var(--danger)';
+            else bar.style.backgroundColor = 'var(--primary)';
+
+            if (left <= 0) clearInterval(timerInterval);
+        }, 1000);
+    }
+
+    function renderScores(totals, players) {
+        const names = new Map(players.map(p => [p.id, p.name]));
+        $('scoresList').innerHTML = totals
+            .sort((a,b) => b.score - a.score)
+            .map(t => `
+                <div class="score-item">
+                    <span>${names.get(t.id) || 'Player'}</span>
+                    <strong>${t.score} امتیاز</strong>
+                </div>
+            `).join('');
+    }
 </script>
+
 </body>
 </html>
