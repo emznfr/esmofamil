@@ -5,43 +5,64 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>اسم فامیل آنلاین</title>
     <style>
-        :root { --p: #4f46e5; --bg: #f8fafc; --danger: #ef4444; --success: #22c55e; }
+        :root { --p: #4f46e5; --bg: #f8fafc; --danger: #ef4444; }
         body { font-family: system-ui; background: var(--bg); margin: 0; padding: 15px; }
-        .wrap { max-width: 900px; margin: 0 auto; }
+        .wrap { max-width: 800px; margin: 0 auto; }
         .card { background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h1 { font-size: 22px; text-align: center; color: var(--p); margin: 0 0 20px; }
+        h1 { font-size: 22px; text-align: center; color: var(--p); }
+
+        /* صفحه ورود جذاب */
+        #authBox { animation: fadeIn 0.8s ease-out; text-align: center; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        #welcomeText { color:#64748b; font-size:15px; margin:10px 0 20px; animation: fadeIn 1s ease-out 0.3s both; }
+
         .input-group { display: grid; gap: 10px; margin-bottom: 15px; grid-template-columns: 1fr 1fr; }
         input, select, button { padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: var(--p); box-shadow: 0 0 0 3px rgba(79,70,229,0.2); }
         button { cursor: pointer; font-weight: bold; transition: 0.2s; border: none; }
         .btn-p { background: var(--p); color: white; }
-        .btn-success { background: var(--success); color: white; }
+        .btn-p:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(79,70,229,0.3); }
+
         .timer-bar { height: 6px; background: #e2e8f0; border-radius: 10px; margin: 10px 0; overflow: hidden; }
         .timer-progress { height: 100%; background: var(--p); width: 100%; transition: width 1s linear; }
-        .timer-progress.low { background: var(--danger); }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
-        .field-card { background: #f1f5f9; padding: 10px; border-radius: 12px; }
-        .field-card label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 5px; color: #444; }
-        .field-card input { width: 100%; border: none; background: transparent; font-size: 14px; resize: none; min-height: 40px; overflow: hidden; }
-        .score-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
-        .player-status { font-size: 12px; color: #666; margin-top: 10px; }
-        .copy-btn { font-size: 12px; padding: 4px 8px; margin-right: 8px; }
 
-        /* Review Table */
-        .table-wrap { overflow-x: auto; margin-top: 15px; }
-        table { width: 100%; min-width: 600px; border-collapse: collapse; font-size: 13px; }
-        th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: center; vertical-align: middle; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+        .field-card { background: #f1f5f9; padding: 10px; border-radius: 12px; min-height: 60px; display: flex; flex-direction: column; }
+        .field-card label { font-size: 11px; font-weight: bold; margin-bottom: 5px; }
+        .field-card input { flex-grow: 1; border:none; background:transparent; font-size:14px; }
+
+        .score-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
+        .player-status { font-size: 12px; color: #64748b; }
+
+        /* جدول داوری */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: center; vertical-align: top; }
         th { background: #f8fafc; }
-        .points-btn { padding: 4px 8px; font-size: 11px; margin: 2px; border-radius: 6px; min-width: 32px; }
-        .btn-0 { background: #ddd; color: #333; }
-        .btn-5 { background: #fbbf24; color: white; }
-        .btn-10 { background: var(--success); color: white; }
-        .round-total { font-weight: bold; color: var(--p); font-size: 14px; }
+        .points-btn {
+            padding: 6px 10px; font-size: 11px; margin: 2px; border-radius: 8px;
+            background: #e2e8f0; color: #334155; border: none; cursor: pointer;
+            min-width: 32px; font-weight: bold;
+        }
+        .points-btn.selected { background: var(--p); color: white; box-shadow: 0 2px 8px rgba(79,70,229,0.3); }
+        .points-btn:hover:not(.selected) { background: #cbd5e1; }
+        .total-score { font-weight: bold; background: #eef2ff; }
+
+        #copyCodeBtn { position:absolute; right:4px; top:4px; padding:8px 12px; font-size:12px; border-radius:8px; background:#e2e8f0; border:none; cursor:pointer; }
+        #copyCodeBtn:hover { background: #cbd5e1; }
+
+        @media (max-width: 600px) {
+            .points-btn { padding: 5px 8px; font-size: 10px; min-width: 28px; }
+        }
     </style>
 </head>
 <body>
 <div class="wrap">
     <div class="card" id="authBox">
-        <h1 id="title">📝 اسم فامیل آنلاین (نسخه داوری)</h1>
+        <div style="text-align:center; margin-bottom: 20px;">
+            <h1 id="title" style="font-size:28px; margin-bottom:8px;">📝 اسم فامیل آنلاین</h1>
+            <p id="welcomeText">با دوستانت رقابت کن و لذت ببر!</p>
+        </div>
+
         <div class="input-group">
             <input id="nameInput" placeholder="نام شما" />
             <select id="langSelect">
@@ -50,38 +71,39 @@
                 <option value="fr">Français</option>
             </select>
         </div>
+
         <div class="input-group">
-            <button class="btn-p" id="createBtn">ساخت اتاق</button>
-            <input id="codeInput" placeholder="کد اتاق" />
+            <button class="btn-p" id="createBtn">ساخت اتاق جدید</button>
+            <div style="position:relative;">
+                <input id="codeInput" placeholder="کد اتاق (مثال: ABC12)" style="padding-right:60px;" />
+                <button id="copyCodeBtn">کپی</button>
+            </div>
         </div>
-        <button class="btn-p" id="joinBtn" style="width:100%; margin-top:5px">ورود به اتاق</button>
+
+        <button class="btn-p" id="joinBtn" style="width:100%; margin-top:10px; padding:14px; font-size:16px;">ورود به اتاق</button>
+
+        <p style="text-align:center; margin-top:20px; font-size:12px; color:#94a3b8;">
+            نسخه داوری دستی • ساخته شده با ❤️
+        </p>
     </div>
 
     <div class="card" id="gameInfo" style="display:none">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
-            <div>
-                <div id="roomPill" style="font-weight:bold">اتاق: —</div>
-                <div style="font-size:12px; color:#666" id="playersCount">بازیکنان: 0</div>
-            </div>
-            <div style="text-align:center">
-                <div id="statusBadge" style="color:var(--p); font-weight:bold">Lobby</div>
-                <button id="copyCodeBtn" class="copy-btn btn-p" style="display:none">کپی کد</button>
-            </div>
+        <div style="display:flex; justify-content:space-between; align-items:center">
+            <div id="roomPill" style="font-weight:bold">اتاق: —</div>
+            <div id="statusBadge" style="color:var(--p); font-size:12px">Lobby</div>
         </div>
-
-        <div id="hostControls" style="display:none; margin-top:15px">
-            <input id="durationInput" type="number" value="120" style="width:80px" min="30" />
+        <div id="playerCount" style="font-size:12px; margin-top:5px">بازیکنان: 0</div>
+        <div id="hostControls" style="display:none; margin-top:10px">
+            <input id="durationInput" type="number" value="120" style="width:70px" />
             <button class="btn-p" id="startBtn">شروع راند</button>
         </div>
-
-        <div id="playerStatus" class="player-status"></div>
         <div id="scoresList" style="margin-top:15px"></div>
     </div>
 
     <div class="card" id="playArea" style="display:none">
-        <div style="display:flex; justify-content:space-between; align-items:center">
-            <div style="font-weight:bold">حرف: <span id="letterBox" style="color:var(--p); font-size:20px">؟</span></div>
-            <div id="timerText" style="font-weight:bold">120s</div>
+        <div style="display:flex; justify-content:space-between">
+            <div style="font-weight:bold" id="letterLabel">حرف: <span id="letterBox" style="color:var(--p)">؟</span></div>
+            <div id="timerText">120s</div>
         </div>
         <div class="timer-bar"><div id="timerProgress" class="timer-progress"></div></div>
         <div id="inputsGrid" class="grid"></div>
@@ -89,14 +111,15 @@
     </div>
 
     <div class="card" id="reviewArea" style="display:none">
-        <h2 style="font-size:16px" id="reviewTitle">🔎 بررسی کلمات (مخصوص میزبان)</h2>
-        <div class="table-wrap">
+        <h2 id="reviewTitle" style="font-size:16px">🔎 بررسی کلمات (مخصوص میزبان)</h2>
+        <div style="overflow-x:auto">
             <table id="reviewTable">
                 <thead><tr id="tableHeader"></tr></thead>
                 <tbody id="tableBody"></tbody>
+                <tfoot id="tableFooter"></tfoot>
             </table>
         </div>
-        <button id="finishReviewBtn" class="btn-success" style="width:100%; margin-top:15px; display:none">پایان داوری و بازگشت به لابی</button>
+        <button id="finishReviewBtn" class="btn-p" style="width:100%; margin-top:15px; display:none">پایان داوری و بازگشت به لابی</button>
     </div>
 </div>
 
@@ -106,136 +129,77 @@
     const CATEGORIES = ["name","family","city","country","animal","food","fruit","object","color","job"];
 
     const i18n = {
-        fa: {
-            title: "📝 اسم فامیل آنلاین (نسخه داوری)",
-            namePlaceholder: "نام شما",
-            createRoom: "ساخت اتاق",
-            joinRoom: "ورود به اتاق",
-            roomCode: "کد اتاق",
-            startRound: "شروع راند",
-            submitWords: "ارسال کلمات",
-            submitted: "فرستاده شد",
-            reviewTitle: "🔎 بررسی کلمات (مخصوص میزبان)",
-            finishReview: "پایان داوری و بازگشت به لابی",
-            letter: "حرف",
-            players: "بازیکنان",
-            scores: "امتیازات",
-            copyCode: "کپی کد",
-            copied: "کپی شد!",
-            allSubmitted: "همه ارسال کردند — داوری شروع شد!"
-        },
-        en: {
-            title: "📝 Esm Famil Online (Judging Version)",
-            namePlaceholder: "Your name",
-            createRoom: "Create Room",
-            joinRoom: "Join Room",
-            roomCode: "Room code",
-            startRound: "Start Round",
-            submitWords: "Submit Words",
-            submitted: "Submitted",
-            reviewTitle: "🔎 Word Review (Host Only)",
-            finishReview: "Finish Review & Return to Lobby",
-            letter: "Letter",
-            players: "Players",
-            scores: "Scores",
-            copyCode: "Copy Code",
-            copied: "Copied!",
-            allSubmitted: "Everyone submitted — Review started!"
-        },
-        fr: {
-            title: "📝 Nom de Famille En Ligne (Version Arbitrage)",
-            namePlaceholder: "Votre nom",
-            createRoom: "Créer une salle",
-            joinRoom: "Rejoindre la salle",
-            roomCode: "Code de salle",
-            startRound: "Démarrer le tour",
-            submitWords: "Soumettre les mots",
-            submitted: "Envoyé",
-            reviewTitle: "🔎 Examen des mots (Hôte uniquement)",
-            finishReview: "Terminer l'arbitrage et retourner au lobby",
-            letter: "Lettre",
-            players: "Joueurs",
-            scores: "Scores",
-            copyCode: "Copier le code",
-            copied: "Copié !",
-            allSubmitted: "Tout le monde a soumis — Arbitrage commencé !"
-        },
-        categories: {
-            fa: { name: "اسم", family: "فامیل", city: "شهر", country: "کشور", animal: "حیوان", food: "غذا", fruit: "میوه", object: "اشیاء", color: "رنگ", job: "شغل" },
-            en: { name: "Name", family: "Family", city: "City", country: "Country", animal: "Animal", food: "Food", fruit: "Fruit", object: "Object", color: "Color", job: "Job" },
-            fr: { name: "Prénom", family: "Nom de famille", city: "Ville", country: "Pays", animal: "Animal", food: "Nourriture", fruit: "Fruit", object: "Objet", color: "Couleur", job: "Métier" }
-        }
+        fa: { categories: { name: "اسم", family: "فامیل", city: "شهر", country: "کشور", animal: "حیوان", food: "غذا", fruit: "میوه", object: "اشیاء", color: "رنگ", job: "شغل" },
+              ui: { title: "📝 اسم فامیل آنلاین", welcome: "با دوستانت رقابت کن و لذت ببر!", namePlaceholder: "نام شما", codePlaceholder: "کد اتاق (مثال: ABC12)", createBtn: "ساخت اتاق جدید", joinBtn: "ورود به اتاق", startBtn: "شروع راند", submitBtn: "ارسال کلمات", submitted: "ارسال شد ✓", reviewTitle: "🔎 بررسی کلمات (مخصوص میزبان)", finishReviewBtn: "پایان داوری و بازگشت به لابی", room: "اتاق", letter: "حرف", scores: "امتیازات کل", players: "بازیکنان", waiting: "در لابی", writing: "در حال نوشتن", submittedStatus: "ارسال کرده" } },
+        en: { categories: { name: "Name", family: "Family", city: "City", country: "Country", animal: "Animal", food: "Food", fruit: "Fruit", object: "Object", color: "Color", job: "Job" },
+              ui: { title: "📝 Name Family Online", welcome: "Play with friends and have fun!", namePlaceholder: "Your Name", codePlaceholder: "Room Code (e.g. ABC12)", createBtn: "Create Room", joinBtn: "Join Room", startBtn: "Start Round", submitBtn: "Submit Words", submitted: "Submitted ✓", reviewTitle: "🔎 Review Words (Host Only)", finishReviewBtn: "End Review & Back to Lobby", room: "Room", letter: "Letter", scores: "Total Scores", players: "Players", waiting: "In lobby", writing: "Writing", submittedStatus: "Submitted" } },
+        fr: { categories: { name: "Prénom", family: "Nom de famille", city: "Ville", country: "Pays", animal: "Animal", food: "Nourriture", fruit: "Fruit", object: "Objet", color: "Couleur", job: "Métier" },
+              ui: { title: "📝 Petit Bac En Ligne", welcome: "Jouez avec vos amis et amusez-vous !", namePlaceholder: "Votre Nom", codePlaceholder: "Code Salle (ex: ABC12)", createBtn: "Créer une Salle", joinBtn: "Entrer", startBtn: "Démarrer le Tour", submitBtn: "Soumettre les Mots", submitted: "Soumis ✓", reviewTitle: "🔎 Examen des Mots (Hôte)", finishReviewBtn: "Terminer & Retour au Lobby", room: "Salle", letter: "Lettre", scores: "Scores Totaux", players: "Joueurs", waiting: "Dans le lobby", writing: "En écriture", submittedStatus: "Soumis" } }
     };
 
     let currentCode = null;
     let timerInterval = null;
-    let currentLang = 'fa';
-
+    let lang = 'fa';
     const $ = id => document.getElementById(id);
-    const t = key => i18n[currentLang][key] || i18n.fa[key] || key;
-    const catT = cat => i18n.categories[currentLang][cat] || i18n.categories.fa[cat] || cat;
 
-    function updateLanguage() {
-        currentLang = $('langSelect').value;
-        document.documentElement.lang = currentLang === 'fa' ? 'fa' : currentLang;
-        document.documentElement.dir = currentLang === 'fa' ? 'rtl' : 'ltr';
-
-        $('title').innerText = t('title');
-        $('nameInput').placeholder = t('namePlaceholder');
-        $('createBtn').innerText = t('createRoom');
-        $('joinBtn').innerText = t('joinRoom');
-        $('codeInput').placeholder = t('roomCode');
-        $('startBtn').innerText = t('startRound');
-        $('submitBtn').innerText = t('submitWords');
-        $('reviewTitle').innerText = t('reviewTitle');
-        $('finishReviewBtn').innerText = t('finishReview');
-        $('copyCodeBtn').innerText = t('copyCode');
+    function updateUI() {
+        const t = i18n[lang].ui;
+        $('title').innerText = t.title;
+        $('welcomeText').innerText = t.welcome;
+        $('nameInput').placeholder = t.namePlaceholder;
+        $('codeInput').placeholder = t.codePlaceholder;
+        $('createBtn').innerText = t.createBtn;
+        $('joinBtn').innerText = t.joinBtn;
+        $('startBtn').innerText = t.startBtn;
+        $('submitBtn').innerText = t.submitBtn;
+        $('reviewTitle').innerText = t.reviewTitle;
+        $('finishReviewBtn').innerText = t.finishReviewBtn;
+        $('letterLabel').innerHTML = `${t.letter}: <span id="letterBox" style="color:var(--p)">؟</span>`;
+        if (currentCode) $('roomPill').innerText = `${t.room}: ${currentCode}`;
     }
 
-    $('langSelect').onchange = updateLanguage;
-
-    $('createBtn').onclick = () => socket.emit("room:create", { name: $('nameInput').value.trim() || "Player" });
-    $('joinBtn').onclick = () => {
-        const code = $('codeInput').value.trim().toUpperCase();
-        if (!code) return alert("کد اتاق را وارد کنید");
-        socket.emit("room:join", { code, name: $('nameInput').value.trim() || "Player" });
+    $('langSelect').onchange = () => {
+        lang = $('langSelect').value;
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === 'fa' ? 'rtl' : 'ltr';
+        updateUI();
+        if ($('inputsGrid').children.length > 0) renderFields(CATEGORIES);
+        if ($('reviewArea').style.display !== 'none') renderReviewTable(window.lastState, window.lastIsHost);
+        renderScores(window.lastTotals || [], window.lastPlayers || []);
     };
-
-    $('startBtn').onclick = () => socket.emit("round:start", { code: currentCode, durationSec: $('durationInput').value });
-    $('submitBtn').onclick = submitAnswers;
-    $('finishReviewBtn').onclick = () => socket.emit("round:finish_review", { code: currentCode });
 
     $('copyCodeBtn').onclick = () => {
-        navigator.clipboard.writeText(currentCode);
-        const btn = $('copyCodeBtn');
-        const old = btn.innerText;
-        btn.innerText = t('copied');
-        setTimeout(() => btn.innerText = old, 1500);
+        const code = $('codeInput').value.trim().toUpperCase();
+        if (code) {
+            navigator.clipboard.writeText(code);
+            const btn = $('copyCodeBtn');
+            const old = btn.innerText;
+            btn.innerText = lang === 'fa' ? 'کپی شد!' : lang === 'en' ? 'Copied!' : 'Copié !';
+            btn.style.background = '#86efac';
+            setTimeout(() => { btn.innerText = old; btn.style.background = '#e2e8f0'; }, 1500);
+        }
     };
 
-    function submitAnswers() {
+    $('createBtn').onclick = () => socket.emit("room:create", { name: $('nameInput').value || "بازیکن", lang });
+    $('joinBtn').onclick = () => socket.emit("room:join", { code: $('codeInput').value.toUpperCase().trim(), name: $('nameInput').value || "بازیکن", lang });
+    $('startBtn').onclick = () => socket.emit("round:start", { code: currentCode, durationSec: $('durationInput').value });
+    $('submitBtn').onclick = () => {
         const answers = {};
-        document.querySelectorAll('.ans-inp').forEach(i => {
-            answers[i.dataset.cat] = i.value.trim();
-        });
+        document.querySelectorAll('.ans-inp').forEach(i => answers[i.dataset.cat] = i.value.trim());
         socket.emit("submit", { code: currentCode, answers }, () => {
             $('submitBtn').disabled = true;
-            $('submitBtn').innerText = t('submitted');
-            $('submitBtn').classList.remove('btn-p');
-            $('submitBtn').classList.add('btn-success');
+            $('submitBtn').innerText = i18n[lang].ui.submitted;
         });
-    }
+    };
+    $('finishReviewBtn').onclick = () => socket.emit("round:finish_review", { code: currentCode });
 
     socket.on("room:state", state => {
         currentCode = state.code;
-        updateLanguage();
-
         $('authBox').style.display = 'none';
         $('gameInfo').style.display = 'block';
-        $('roomPill').innerText = `${t('roomCode')}: ${state.code}`;
-        $('playersCount').innerText = `${t('players')}: ${state.players.length}`;
-        $('copyCodeBtn').style.display = 'inline-block';
 
+        const t = i18n[lang].ui;
+        $('roomPill').innerText = `${t.room}: ${state.code}`;
         const isHost = state.hostSocketId === socket.id;
         $('hostControls').style.display = isHost ? 'block' : 'none';
         $('finishReviewBtn').style.display = (isHost && state.status === 'review') ? 'block' : 'none';
@@ -243,38 +207,41 @@
         $('playArea').style.display = state.status === 'playing' ? 'block' : 'none';
         $('reviewArea').style.display = state.status === 'review' ? 'block' : 'none';
         $('statusBadge').innerText = state.status.toUpperCase();
+        $('playerCount').innerText = `${t.players}: ${state.players.length}`;
 
         if (state.status === 'playing') {
             $('letterBox').innerText = state.letter;
-            renderFields();
+            renderFields(state.categories);
             startTimerUI(state.endsAt, state.durationSec);
             $('submitBtn').disabled = false;
-            $('submitBtn').innerText = t('submitWords');
-            $('submitBtn').classList.add('btn-p');
-            $('submitBtn').classList.remove('btn-success');
+            $('submitBtn').innerText = t.submitBtn;
         }
 
-        if (state.status === 'review') renderReviewTable(state, isHost);
+        if (state.status === 'review') {
+            window.lastState = state;
+            window.lastIsHost = isHost;
+            renderReviewTable(state, isHost);
+        }
 
+        if (state.status === 'lobby' || state.status === 'review') {
+            $('inputsGrid').innerHTML = '';
+        }
+
+        window.lastTotals = state.totals;
+        window.lastPlayers = state.players;
         renderScores(state.totals, state.players);
-        renderPlayerStatus(state);
     });
 
-    function autoResize(textarea) {
-        textarea.style.height = 'auto';
-        textarea.style.height = textarea.scrollHeight + 'px';
-    }
-
-    function renderFields() {
+    function renderFields(cats) {
         const grid = $('inputsGrid');
-        if (grid.children.length > 0) return;
-        grid.innerHTML = CATEGORIES.map(cat => `
-            <div class="field-card">
-                <label>${catT(cat)}</label>
-                <textarea class="ans-inp" data-cat="${cat}" oninput="autoResize(this)"></textarea>
-            </div>
-        `).join('');
-        document.querySelectorAll('.ans-inp').forEach(el => el.addEventListener('input', () => autoResize(el)));
+        grid.innerHTML = '';
+        const labels = i18n[lang].categories;
+        cats.forEach(cat => {
+            const div = document.createElement('div');
+            div.className = 'field-card';
+            div.innerHTML = `<label>${labels[cat] || cat}</label><input class="ans-inp" data-cat="${cat}" value="" autocomplete="off" />`;
+            grid.appendChild(div);
+        });
     }
 
     function startTimerUI(endsAt, total) {
@@ -282,65 +249,66 @@
         timerInterval = setInterval(() => {
             const left = Math.max(0, Math.floor((endsAt - Date.now()) / 1000));
             $('timerText').innerText = left + "s";
-            const percent = (left / total) * 100;
-            const progress = $('timerProgress');
-            progress.style.width = percent + "%";
-            progress.classList.toggle('low', left <= 30);
+            $('timerProgress').style.width = (left / total * 100) + "%";
             if (left <= 0) clearInterval(timerInterval);
-        }, 500);
+        }, 1000);
     }
 
     function renderScores(totals, players) {
+        const t = i18n[lang].ui;
         const names = new Map(players.map(p => [p.id, p.name]));
-        const sorted = totals.sort((a,b) => b.score - a.score);
-        $('scoresList').innerHTML = `<b>${t('scores')}:</b>` + 
-            (sorted.length ? sorted.map(t => `<div class="score-row"><span>${names.get(t.id)}</span><b>${t.score}</b></div>`).join('') : '<div style="color:#999;padding:10px">هنوز امتیازی ثبت نشده</div>');
-    }
-
-    function renderPlayerStatus(state) {
-        const submittedCount = state.submissions.length;
-        const totalPlayers = state.players.length;
-        if (state.status === 'playing') {
-            $('playerStatus').innerText = `${submittedCount} از ${totalPlayers} نفر کلمات را ارسال کرده‌اند`;
-        } else {
-            $('playerStatus').innerText = '';
-        }
+        const statusMap = new Map(players.map(p => [p.id, p.status === 'submitted' ? t.submittedStatus : p.status === 'writing' ? t.writing : t.waiting]));
+        let html = `<b>${t.scores}:</b>`;
+        totals.sort((a,b) => b.score - a.score).forEach(item => {
+            html += `<div class="score-row"><span>${names.get(item.id)} <span class="player-status">(${statusMap.get(item.id)})</span></span><b>${item.score}</b></div>`;
+        });
+        $('scoresList').innerHTML = html;
     }
 
     function renderReviewTable(state, isHost) {
+        const labels = i18n[lang].categories;
         const header = $('tableHeader');
         const body = $('tableBody');
 
-        header.innerHTML = `<th>بازیکن</th>` + 
-            state.categories.map(c => `<th>${catT(c)}</th>`).join('') + 
-            `<th>${t('scores')} راند</th>` +
-            (isHost ? `<th>امتیازدهی</th>` : '');
+        let headerHtml = '<th>بازیکن</th>' +
+                         state.categories.map(c => `<th>${labels[c] || c}</th>`).join('') +
+                         '<th class="total-score">مجموع راند</th>';
+        header.innerHTML = headerHtml;
 
         body.innerHTML = state.submissions.map(sub => {
-            const roundScore = sub.roundScore || 0;
-            return `
-                <tr>
-                    <td><b>${sub.name}</b></td>
-                    ${state.categories.map(c => `<td>${sub.answers[c] || '-'}</td>`).join('')}
-                    <td class="round-total">${roundScore}</td>
-                    ${isHost ? `<td>
-                        ${state.categories.map(c => `
-                            <button class="points-btn btn-0" onclick="assign('${sub.id}','${c}',0)">0</button>
-                            <button class="points-btn btn-5" onclick="assign('${sub.id}','${c}',5)">5</button>
-                            <button class="points-btn btn-10" onclick="assign('${sub.id}','${c}',10)">10</button>
-                        `).join('')}
-                    </td>` : ''}
-                </tr>
-            `;
+            const rowSum = Object.values(sub.scores || {}).reduce((a,b) => a + b, 0);
+            let row = `<tr><td><b>${sub.name}</b></td>`;
+
+            state.categories.forEach(c => {
+                const answer = sub.answers[c] || '-';
+                const score = sub.scores[c] || 0;
+                let cell = `<div style="margin-bottom:8px; font-weight:500;">${answer}</div>`;
+
+                if (isHost) {
+                    cell += `<div style="display:flex; justify-content:center; gap:4px; flex-wrap:wrap;">`;
+                    [0, 5, 10].forEach(pts => {
+                        const selected = score === pts ? 'selected' : '';
+                        cell += `<button class="points-btn ${selected}" onclick="assign('${sub.id}','${c}',${pts})">${pts}</button>`;
+                    });
+                    cell += `</div>`;
+                } else {
+                    cell += `<div style="font-size:12px; color:#64748b;">(${score} امتیاز)</div>`;
+                }
+
+                row += `<td style="padding:10px 6px;">${cell}</td>`;
+            });
+
+            row += `<td class="total-score"><b>${rowSum}</b></td></tr>`;
+            return row;
         }).join('');
     }
 
-    window.assign = (playerId, category, points) => {
-        socket.emit("host:assign_score", { code: currentCode, playerId, category, points });
+    window.assign = (pid, cat, pts) => {
+        socket.emit("host:assign_score", { code: currentCode, playerId: pid, category: cat, points: pts });
     };
 
     // شروع اولیه
-    updateLanguage();
+    updateUI();
 </script>
 </body>
 </html>
