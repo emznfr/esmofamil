@@ -151,7 +151,6 @@
         $('createBtn').innerText = t.createBtn;
         $('joinBtn').innerText = t.joinBtn;
         $('startBtn').innerText = t.startBtn;
-        $('submitBtn').innerText = t.submitBtn;
         $('reviewTitle').innerText = t.reviewTitle;
         $('finishReviewBtn').innerText = t.finishReviewBtn;
         $('letterLabel').innerHTML = `${t.letter}: <span id="letterBox" style="color:var(--p)">؟</span>`;
@@ -163,7 +162,7 @@
         document.documentElement.lang = lang;
         document.documentElement.dir = lang === 'fa' ? 'rtl' : 'ltr';
         updateUI();
-        if ($('inputsGrid').children.length > 0) renderFields(CATEGORIES);
+        if ($('inputsGrid').children.length > 0) renderFields(CATEGORIES); // فقط اگر فیلدها هستن، لیبل‌ها رو آپدیت کن
         if ($('reviewArea').style.display !== 'none') renderReviewTable(window.lastState, window.lastIsHost);
         renderScores(window.lastTotals || [], window.lastPlayers || []);
     };
@@ -211,10 +210,23 @@
 
         if (state.status === 'playing') {
             $('letterBox').innerText = state.letter;
-            renderFields(state.categories);
+
+            // فقط یک بار فیلدها رو بساز (وقتی grid خالیه)
+            if ($('inputsGrid').children.length === 0) {
+                renderFields(state.categories);
+            }
+
             startTimerUI(state.endsAt, state.durationSec);
-            $('submitBtn').disabled = false;
-            $('submitBtn').innerText = t.submitBtn;
+
+            // وضعیت دکمه ارسال برای خودمون
+            const myPlayer = state.players.find(p => p.id === socket.id);
+            if (myPlayer && myPlayer.status === 'submitted') {
+                $('submitBtn').disabled = true;
+                $('submitBtn').innerText = t.submitted;
+            } else {
+                $('submitBtn').disabled = false;
+                $('submitBtn').innerText = t.submitBtn;
+            }
         }
 
         if (state.status === 'review') {
