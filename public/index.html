@@ -129,17 +129,24 @@
     const CATEGORIES = ["name","family","city","country","animal","food","fruit","object","color","job"];
 
     const i18n = {
-        fa: { categories: { name: "اسم", family: "فامیل", city: "شهر", country: "کشور", animal: "حیوان", food: "غذا", fruit: "میوه", object: "اشیاء", color: "رنگ", job: "شغل" },
-              ui: { title: "📝 اسم فامیل آنلاین", welcome: "با دوستانت رقابت کن و لذت ببر!", namePlaceholder: "نام شما", codePlaceholder: "کد اتاق (مثال: ABC12)", createBtn: "ساخت اتاق جدید", joinBtn: "ورود به اتاق", startBtn: "شروع راند", submitBtn: "ارسال کلمات", submitted: "ارسال شد ✓", reviewTitle: "🔎 بررسی کلمات (مخصوص میزبان)", finishReviewBtn: "پایان داوری و بازگشت به لابی", room: "اتاق", letter: "حرف", scores: "امتیازات کل", players: "بازیکنان", waiting: "در لابی", writing: "در حال نوشتن", submittedStatus: "ارسال کرده" } },
-        en: { categories: { name: "Name", family: "Family", city: "City", country: "Country", animal: "Animal", food: "Food", fruit: "Fruit", object: "Object", color: "Color", job: "Job" },
-              ui: { title: "📝 Name Family Online", welcome: "Play with friends and have fun!", namePlaceholder: "Your Name", codePlaceholder: "Room Code (e.g. ABC12)", createBtn: "Create Room", joinBtn: "Join Room", startBtn: "Start Round", submitBtn: "Submit Words", submitted: "Submitted ✓", reviewTitle: "🔎 Review Words (Host Only)", finishReviewBtn: "End Review & Back to Lobby", room: "Room", letter: "Letter", scores: "Total Scores", players: "Players", waiting: "In lobby", writing: "Writing", submittedStatus: "Submitted" } },
-        fr: { categories: { name: "Prénom", family: "Nom de famille", city: "Ville", country: "Pays", animal: "Animal", food: "Nourriture", fruit: "Fruit", object: "Objet", color: "Couleur", job: "Métier" },
-              ui: { title: "📝 Petit Bac En Ligne", welcome: "Jouez avec vos amis et amusez-vous !", namePlaceholder: "Votre Nom", codePlaceholder: "Code Salle (ex: ABC12)", createBtn: "Créer une Salle", joinBtn: "Entrer", startBtn: "Démarrer le Tour", submitBtn: "Soumettre les Mots", submitted: "Soumis ✓", reviewTitle: "🔎 Examen des Mots (Hôte)", finishReviewBtn: "Terminer & Retour au Lobby", room: "Salle", letter: "Lettre", scores: "Scores Totaux", players: "Joueurs", waiting: "Dans le lobby", writing: "En écriture", submittedStatus: "Soumis" } }
+        fa: {
+            categories: { name: "اسم", family: "فامیل", city: "شهر", country: "کشور", animal: "حیوان", food: "غذا", fruit: "میوه", object: "اشیاء", color: "رنگ", job: "شغل" },
+            ui: { title: "📝 اسم فامیل آنلاین", welcome: "با دوستانت رقابت کن و لذت ببر!", namePlaceholder: "نام شما", codePlaceholder: "کد اتاق (مثال: ABC12)", createBtn: "ساخت اتاق جدید", joinBtn: "ورود به اتاق", startBtn: "شروع راند", submitBtn: "ارسال کلمات", submitted: "ارسال شد ✓", reviewTitle: "🔎 بررسی کلمات (مخصوص میزبان)", finishReviewBtn: "پایان داوری و بازگشت به لابی", room: "اتاق", letter: "حرف", scores: "امتیازات کل", players: "بازیکنان", waiting: "در لابی", writing: "در حال نوشتن", submittedStatus: "ارسال کرده" }
+        },
+        en: {
+            categories: { name: "Name", family: "Family", city: "City", country: "Country", animal: "Animal", food: "Food", fruit: "Fruit", object: "Object", color: "Color", job: "Job" },
+            ui: { title: "📝 Name Family Online", welcome: "Play with friends and have fun!", namePlaceholder: "Your Name", codePlaceholder: "Room Code (e.g. ABC12)", createBtn: "Create Room", joinBtn: "Join Room", startBtn: "Start Round", submitBtn: "Submit Words", submitted: "Submitted ✓", reviewTitle: "🔎 Review Words (Host Only)", finishReviewBtn: "End Review & Back to Lobby", room: "Room", letter: "Letter", scores: "Total Scores", players: "Players", waiting: "In lobby", writing: "Writing", submittedStatus: "Submitted" }
+        },
+        fr: {
+            categories: { name: "Prénom", family: "Nom de famille", city: "Ville", country: "Pays", animal: "Animal", food: "Nourriture", fruit: "Fruit", object: "Objet", color: "Couleur", job: "Métier" },
+            ui: { title: "📝 Petit Bac En Ligne", welcome: "Jouez avec vos amis et amusez-vous !", namePlaceholder: "Votre Nom", codePlaceholder: "Code Salle (ex: ABC12)", createBtn: "Créer une Salle", joinBtn: "Entrer", startBtn: "Démarrer le Tour", submitBtn: "Soumettre les Mots", submitted: "Soumis ✓", reviewTitle: "🔎 Examen des Mots (Hôte)", finishReviewBtn: "Terminer & Retour au Lobby", room: "Salle", letter: "Lettre", scores: "Scores Totaux", players: "Joueurs", waiting: "Dans le lobby", writing: "En écriture", submittedStatus: "Soumis" }
+        }
     };
 
     let currentCode = null;
     let timerInterval = null;
     let lang = 'fa';
+    let hasAutoSubmitted = false; // برای جلوگیری از ارسال چندباره اتوماتیک
     const $ = id => document.getElementById(id);
 
     function updateUI() {
@@ -162,7 +169,7 @@
         document.documentElement.lang = lang;
         document.documentElement.dir = lang === 'fa' ? 'rtl' : 'ltr';
         updateUI();
-        if ($('inputsGrid').children.length > 0) renderFields(CATEGORIES); // فقط اگر فیلدها هستن، لیبل‌ها رو آپدیت کن
+        if ($('inputsGrid').children.length > 0) renderFields(CATEGORIES);
         if ($('reviewArea').style.display !== 'none') renderReviewTable(window.lastState, window.lastIsHost);
         renderScores(window.lastTotals || [], window.lastPlayers || []);
     };
@@ -182,6 +189,7 @@
     $('createBtn').onclick = () => socket.emit("room:create", { name: $('nameInput').value || "بازیکن", lang });
     $('joinBtn').onclick = () => socket.emit("room:join", { code: $('codeInput').value.toUpperCase().trim(), name: $('nameInput').value || "بازیکن", lang });
     $('startBtn').onclick = () => socket.emit("round:start", { code: currentCode, durationSec: $('durationInput').value });
+
     $('submitBtn').onclick = () => {
         const answers = {};
         document.querySelectorAll('.ans-inp').forEach(i => answers[i.dataset.cat] = i.value.trim());
@@ -190,6 +198,7 @@
             $('submitBtn').innerText = i18n[lang].ui.submitted;
         });
     };
+
     $('finishReviewBtn').onclick = () => socket.emit("round:finish_review", { code: currentCode });
 
     socket.on("room:state", state => {
@@ -211,14 +220,12 @@
         if (state.status === 'playing') {
             $('letterBox').innerText = state.letter;
 
-            // فقط یک بار فیلدها رو بساز (وقتی grid خالیه)
             if ($('inputsGrid').children.length === 0) {
                 renderFields(state.categories);
             }
 
             startTimerUI(state.endsAt, state.durationSec);
 
-            // وضعیت دکمه ارسال برای خودمون
             const myPlayer = state.players.find(p => p.id === socket.id);
             if (myPlayer && myPlayer.status === 'submitted') {
                 $('submitBtn').disabled = true;
@@ -227,12 +234,25 @@
                 $('submitBtn').disabled = false;
                 $('submitBtn').innerText = t.submitBtn;
             }
+
+            hasAutoSubmitted = false;
         }
 
         if (state.status === 'review') {
             window.lastState = state;
             window.lastIsHost = isHost;
             renderReviewTable(state, isHost);
+
+            // ارسال اتوماتیک اگر کاربر هنوز ارسال نکرده باشه
+            const myPlayer = state.players.find(p => p.id === socket.id);
+            if (myPlayer && myPlayer.status !== 'submitted' && !hasAutoSubmitted) {
+                const answers = {};
+                document.querySelectorAll('.ans-inp').forEach(i => answers[i.dataset.cat] = i.value.trim());
+                socket.emit("submit", { code: currentCode, answers });
+                $('submitBtn').disabled = true;
+                $('submitBtn').innerText = t.submitted;
+                hasAutoSubmitted = true;
+            }
         }
 
         if (state.status === 'lobby' || state.status === 'review') {
@@ -319,7 +339,6 @@
         socket.emit("host:assign_score", { code: currentCode, playerId: pid, category: cat, points: pts });
     };
 
-    // شروع اولیه
     updateUI();
 </script>
 </body>
