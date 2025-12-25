@@ -97,10 +97,19 @@ io.on("connection", (socket) => {
 
     socket.on("submit", ({ code, answers }, cb) => {
         const room = rooms.get(code);
-        if (room && room.status === "playing") {
-            room.submissions.set(socket.id, { answers, scores: {} });
-            room.players.get(socket.id).status = "submitted";
+        if (room && (room.status === "playing" || room.status === "review")) {
+            // Prevent duplicate submissions if the timer already pushed the room to review
+            if (!room.submissions.has(socket.id)) {
+                room.submissions.set(socket.id, { answers, scores: {} });
+                room.players.get(socket.id).status = "submitted";
+            }
+
             cb?.({ ok: true });
+
+            if (room.status === "review") {
+                io.to(code).emit("room:state", publicRoomState(room));
+                return;
+            }
 
             if (room.submissions.size === room.players.size) {
                 if (room.timer) clearTimeout(room.timer);
